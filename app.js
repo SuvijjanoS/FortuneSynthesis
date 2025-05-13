@@ -5,6 +5,7 @@ import { calculateLifeGraph, interpretLifeGraph } from './lifegraph.js';
 import { calculateVedicChart, calculateTransits } from './vedic.js';
 import synthesis from './synthesis.js';
 
+
 // Supabase configuration - PLEASE UPDATE THESE VALUES
 const SUPABASE_URL = 'https://bpyllzwabiseudjplixz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJweWxsendhYmlzZXVkanBsaXh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxMDk0MzcsImV4cCI6MjA2MjY4NTQzN30.kQl_L5DhUTU-GMkdveGGu_mSoW11fqDMAmlsmaHo7BA';
