@@ -1,4 +1,5 @@
 // Main application JavaScript
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 import { calculateBaziChart, HEAVENLY_STEMS, EARTHLY_BRANCHES, SOLAR_TERMS } from './bazi.js';
 import { calculateLifeGraph, interpretLifeGraph } from './lifegraph.js';
 import { calculateVedicChart, calculateTransits } from './vedic.js';
