@@ -1,5 +1,63 @@
 // synthesis.js - Cross-System Synthesis Module
 
+// synthesis.js - Cross-System Synthesis Module
+
+// Define local copies of the constants we need
+const INTERACTIONS = {
+  combinations: [
+    { branches: ['子', '丑'], result: 'Earth' },
+    { branches: ['寅', '亥'], result: 'Wood' },
+    { branches: ['卯', '戌'], result: 'Fire' },
+    { branches: ['辰', '酉'], result: 'Metal' },
+    { branches: ['巳', '申'], result: 'Water' },
+    { branches: ['午', '未'], result: 'Fire' }
+  ],
+  
+  threeHarmonies: [
+    { branches: ['申', '子', '辰'], result: 'Water' },
+    { branches: ['亥', '卯', '未'], result: 'Wood' },
+    { branches: ['寅', '午', '戌'], result: 'Fire' },
+    { branches: ['巳', '酉', '丑'], result: 'Metal' }
+  ],
+  
+  clashes: [
+    { branches: ['子', '午'] },
+    { branches: ['丑', '未'] },
+    { branches: ['寅', '申'] },
+    { branches: ['卯', '酉'] },
+    { branches: ['辰', '戌'] },
+    { branches: ['巳', '亥'] }
+  ],
+  
+  harms: [
+    { branches: ['子', '未'] },
+    { branches: ['丑', '午'] },
+    { branches: ['寅', '巳'] },
+    { branches: ['卯', '辰'] },
+    { branches: ['申', '亥'] },
+    { branches: ['酉', '戌'] }
+  ],
+  
+  penalties: {
+    selfPenalty: ['辰', '午', '酉', '亥'],
+    uncivilizedPenalty: ['子', '卯'],
+    threeWayPenalties: [
+      { branches: ['寅', '巳', '申'] },
+      { branches: ['丑', '未', '戌'] }
+    ]
+  },
+  
+  destructions: [
+    { branches: ['子', '酉'] },
+    { branches: ['卯', '午'] },
+    { branches: ['辰', '丑'] },
+    { branches: ['未', '戌'] },
+    { branches: ['寅', '亥'] },
+    { branches: ['巳', '申'] }
+  ]
+};
+
+
 // Import necessary constants from other modules
 import { INTERACTIONS } from './bazi.js';
 
