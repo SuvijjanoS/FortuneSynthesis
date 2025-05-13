@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<title>BaZi quick-test</title>
+
+<h2>BaZi Calculator – smoke test</h2>
+<p>Date: <input id="date" type="date" value="1990-01-01">
+   Time: <input id="time" type="time" value="12:00">
+   <button id="run">Run</button></p>
+<pre id="out" style="white-space:pre-wrap;background:#f7f7f7;padding:1em"></pre>
+
+<!-- 1️⃣ BaZi logic -->
+<script type="module" src="bazi.js"></script>
+
+<!-- 2️⃣ Supabase client (CDN ES-module build) -->
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+  // 🔑 paste from Supabase → Settings → API
+  const supabaseUrl  = 'https://YOUR_PROJECT.supabase.co'
+  const supabaseAnon = 'YOUR_ANON_KEY'
+  const supabase     = createClient(supabaseUrl, supabaseAnon)
+
+  document.getElementById('run').onclick = async () => {
+    const birthDate = new Date(
+      document.getElementById('date').value + 'T' +
+      document.getElementById('time').value + ':00'
+    )
+    // quick-and-dirty location object for Bangkok
+    const location  = { latitude: 13.7563, longitude: 100.5018, timezone: 7 }
+
+    // call the BaZi module we exposed in step 2
+    const chart = window.calcBaziChart(birthDate, location, 'female')
+    document.getElementById('out').textContent =
+      JSON.stringify(chart, null, 2)
+
+    // OPTIONAL: store a copy in Supabase later
+    // await supabase.from('calculations').insert({ chart })
+  }
+</script>
