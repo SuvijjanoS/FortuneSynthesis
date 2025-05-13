@@ -6,7 +6,9 @@
   <title>Astro Calculator</title>
   <style>
     .error { color: #f44336; background: #ffebee; padding: 15px; border-radius: 4px; margin: 15px 0; }
-    .loading { display: none; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1em; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #f5f5f5; }
   </style>
 </head>
 <body>
@@ -26,70 +28,82 @@
       <input type="hidden" id="timezone" value="7">
     </div>
     <button id="calculate-btn">Run Calculations</button>
-    <div id="loading" class="loading">Calculating charts…</div>
     <div id="error-message" class="error" style="display:none;"></div>
     <section id="results-section" style="display:none;"></section>
   </div>
 
   <script type="module">
     import { calculateBaziChart } from './bazi.js';
-    console.log('Module loaded');
-
-    window.addEventListener('error', e => {
-      console.error('Global error handler:', e);
-      const err = document.getElementById('error-message');
-      err.style.display = 'block';
-      err.textContent = `Error: ${e.message} at ${e.filename}:${e.lineno}`;
-    });
-    window.addEventListener('unhandledrejection', e => {
-      console.error('Unhandled promise rejection:', e);
-      const err = document.getElementById('error-message');
-      err.style.display = 'block';
-      err.textContent = `Unhandled promise rejection: ${e.reason?.message || e.reason}`;
-    });
 
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('DOM fully loaded');
-      const btn = document.getElementById('calculate-btn');
-      console.log('Button element:', btn);
-      btn.addEventListener('click', () => {
-        console.log('Run Calculations clicked');
+      document.getElementById('calculate-btn').addEventListener('click', () => {
         document.getElementById('error-message').style.display = 'none';
         const dateInput = document.getElementById('birth-date').value;
         const timeInput = document.getElementById('birth-time').value;
         const gender = document.getElementById('gender').value;
         const longitude = parseFloat(document.getElementById('longitude').value);
         const timezone = parseInt(document.getElementById('timezone').value, 10);
-        console.log({ dateInput, timeInput, gender, longitude, timezone });
+
         if (!dateInput || !timeInput) {
-          return displayError('Please enter both birth date and time.');
+          showError('Please enter both birth date and time.');
+          return;
         }
         const [year, month, day] = dateInput.split('-').map(Number);
         const [hour, minute] = timeInput.split(':').map(Number);
         const birthDate = new Date(year, month - 1, day, hour, minute);
-        console.log('Computed birthDate:', birthDate);
+
         try {
           const chart = calculateBaziChart(birthDate, { longitude, timezone }, gender);
-          console.log('Chart result:', chart);
           displayResults(chart);
         } catch (err) {
-          console.error('Error in calculateBaziChart:', err);
-          displayError(err.message);
+          showError(err.message);
         }
       });
     });
 
-    function displayError(msg) {
-      console.log('Displaying error:', msg);
+    function showError(msg) {
       const err = document.getElementById('error-message');
       err.style.display = 'block';
       err.textContent = msg;
     }
 
     function displayResults(chart) {
-      console.log('Displaying results');
       const section = document.getElementById('results-section');
       section.style.display = 'block';
-      section.innerHTML = `<pre>${JSON.stringify(chart, null, 2)}</pre>`;
+      let html = '';
+      // Birth Chart
+      html += '<h2>Birth Chart</h2>';
+      html += '<table><thead><tr><th>Pillar</th><th>Stem</th><th>Branch</th></tr></thead><tbody>';
+      ['yearPillar','monthPillar','dayPillar','hourPillar'].forEach(key => {
+        const p = chart[key];
+        html += `<tr><td>${key.replace('Pillar','')}</td>` +
+                `<td>${p.stem.chinese} (${p.stem.pinyin})<br>${p.stem.element}</td>` +
+                `<td>${p.branch.chinese} (${p.branch.pinyin})<br>${p.branch.animal}</td></tr>`;
+      });
+      html += '</tbody></table>';
+      // Luck Pillars
+      html += '<h2>Luck Pillars</h2>';
+      html += '<table><thead><tr><th>Age Range</th><th>Stem</th><th>Branch</th></tr></thead><tbody>';
+      chart.luckPillars.forEach(lp => {
+        html += `<tr><td>${lp.startAge}-${lp.endAge}</td>` +
+                `<td>${lp.stem.chinese} (${lp.stem.pinyin}) ${lp.stem.element}</td>` +
+                `<td>${lp.branch.chinese} (${lp.branch.pinyin}) ${lp.branch.animal}</td></tr>`;
+      });
+      html += '</tbody></table>';
+      // Combinations
+      html += '<h2>Six Combinations</h2>';
+      html += '<table><thead><tr><th>Branches</th><th>Result</th></tr></thead><tbody>';
+      chart.interactions.combinations.forEach(c => {
+        html += `<tr><td>${c.branches.join(', ')}</td><td>${c.result}</td></tr>`;
+      });
+      html += '</tbody></table>';
+      // Clashes
+      html += '<h2>Six Clashes</h2>';
+      html += '<table><thead><tr><th>Branches</th></tr></thead><tbody>';
+      chart.interactions.clashes.forEach(c => {
+        html += `<tr><td>${c.branches.join(', ')}</td></tr>`;
+      });
+      html += '</tbody></table>';
+      section.innerHTML = html;
     }
   </script>
