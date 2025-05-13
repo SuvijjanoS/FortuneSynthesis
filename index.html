@@ -9,6 +9,7 @@
     table { width: 100%; border-collapse: collapse; margin-bottom: 1em; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
     th { background: #f5f5f5; }
+    .hidden-stems { font-size: 0.9em; color: #555; }
   </style>
 </head>
 <body>
@@ -37,12 +38,16 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('calculate-btn').addEventListener('click', () => {
-        document.getElementById('error-message').style.display = 'none';
+        const errDiv = document.getElementById('error-message');
+        errDiv.style.display = 'none';
+
         const dateInput = document.getElementById('birth-date').value;
         const timeInput = document.getElementById('birth-time').value;
         const gender = document.getElementById('gender').value;
         const longitude = parseFloat(document.getElementById('longitude').value);
-        const timezone = parseInt(document.getElementById('timezone').value, 10);
+        // timezone needs to be in minutes for calculateLocalSolarTime
+        const timezoneHours = parseInt(document.getElementById('timezone').value, 10);
+        const timezone = timezoneHours * 60;
 
         if (!dateInput || !timeInput) {
           showError('Please enter both birth date and time.');
@@ -50,14 +55,16 @@
         }
         const [year, month, day] = dateInput.split('-').map(Number);
         const [hour, minute] = timeInput.split(':').map(Number);
-        const birthDate = new Date(year, month - 1, day, hour, minute);
+        const birthDate = new Date(Date.UTC(year, month - 1, day, hour - timezoneHours, minute));
 
+        let chart;
         try {
-          const chart = calculateBaziChart(birthDate, { longitude, timezone }, gender);
-          displayResults(chart);
-        } catch (err) {
-          showError(err.message);
+          chart = calculateBaziChart(birthDate, { longitude, timezone }, gender);
+        } catch (e) {
+          showError(e.message);
+          return;
         }
+        displayResults(chart);
       });
     });
 
@@ -67,43 +74,83 @@
       err.textContent = msg;
     }
 
+    function renderHidden(stems) {
+      return `<div class="hidden-stems">Hidden Stems: ${stems.map(s=>`${s.chinese}(${s.pinyin})`).join(', ')}</div>`;
+    }
+
     function displayResults(chart) {
       const section = document.getElementById('results-section');
       section.style.display = 'block';
       let html = '';
+
       // Birth Chart
       html += '<h2>Birth Chart</h2>';
-      html += '<table><thead><tr><th>Pillar</th><th>Stem</th><th>Branch</th></tr></thead><tbody>';
+      html += '<table><thead><tr><th>Pillar</th><th>Stem</th><th>Branch</th><th>Element</th></tr></thead><tbody>';
       ['yearPillar','monthPillar','dayPillar','hourPillar'].forEach(key => {
         const p = chart[key];
-        html += `<tr><td>${key.replace('Pillar','')}</td>` +
-                `<td>${p.stem.chinese} (${p.stem.pinyin})<br>${p.stem.element}</td>` +
-                `<td>${p.branch.chinese} (${p.branch.pinyin})<br>${p.branch.animal}</td></tr>`;
+        html += `<tr>` +
+                `<td>${key.replace('Pillar','')}</td>` +
+                `<td>${p.stem.chinese} (${p.stem.pinyin})</td>` +
+                `<td>${p.branch.chinese} (${p.branch.pinyin}) ${p.branch.animal}${renderHidden(p.branch.hiddenStems)}</td>` +
+                `<td>${p.branch.element}</td>` +
+                `</tr>`;
       });
       html += '</tbody></table>';
-      // Luck Pillars
-      html += '<h2>Luck Pillars</h2>';
-      html += '<table><thead><tr><th>Age Range</th><th>Stem</th><th>Branch</th></tr></thead><tbody>';
-      chart.luckPillars.forEach(lp => {
-        html += `<tr><td>${lp.startAge}-${lp.endAge}</td>` +
-                `<td>${lp.stem.chinese} (${lp.stem.pinyin}) ${lp.stem.element}</td>` +
-                `<td>${lp.branch.chinese} (${lp.branch.pinyin}) ${lp.branch.animal}</td></tr>`;
+
+      // Luck Pillars (12 pillars)
+      html += '<h2>Luck Pillars (12)</h2>';
+      html += '<table><thead><tr><th>Period</th><th>Stem</th><th>Branch</th><th>Element</th></tr></thead><tbody>';
+      chart.luckPillars.slice(0,12).forEach(lp => {
+        html += `<tr>` +
+                `<td>${lp.startAge}-${lp.endAge}</td>` +
+                `<td>${lp.stem.chinese} (${lp.stem.pinyin})</td>` +
+                `<td>${lp.branch.chinese} (${lp.branch.pinyin})${renderHidden(lp.branch.hiddenStems)}</td>` +
+                `<td>${lp.branch.element}</td>` +
+                `</tr>`;
       });
       html += '</tbody></table>';
-      // Combinations
+
+      // Six Combinations
       html += '<h2>Six Combinations</h2>';
-      html += '<table><thead><tr><th>Branches</th><th>Result</th></tr></thead><tbody>';
+      html += '<table><thead><tr><th>Branches</th><th>Result Element</th><th>Pinyin</th></tr></thead><tbody>';
       chart.interactions.combinations.forEach(c => {
-        html += `<tr><td>${c.branches.join(', ')}</td><td>${c.result}</td></tr>`;
+        html += `<tr>` +
+                `<td>${c.branches.join(', ')}</td>` +
+                `<td>${c.result}</td>` +
+                `<td>${c.branches.map(b => {
+                   const br = chart.yearPillar.branch.chinese===b ? chart.yearPillar.branch :
+                             chart.monthPillar.branch.chinese===b ? chart.monthPillar.branch :
+                             chart.dayPillar.branch.chinese===b ? chart.dayPillar.branch :
+                             chart.hourPillar.branch.chinese===b ? chart.hourPillar.branch : null;
+                   return br ? br.pinyin : '';
+                 }).join(', ')}</td>` +
+                `</tr>`;
       });
       html += '</tbody></table>';
-      // Clashes
+
+      // Six Clashes
       html += '<h2>Six Clashes</h2>';
-      html += '<table><thead><tr><th>Branches</th></tr></thead><tbody>';
+      html += '<table><thead><tr><th>Branches</th><th>Pinyin</th><th>Element</th></tr></thead><tbody>';
       chart.interactions.clashes.forEach(c => {
-        html += `<tr><td>${c.branches.join(', ')}</td></tr>`;
+        const [b1,b2] = c.branches;
+        const el1 = c.branches.map(b=> {
+          const br = [chart.yearPillar,chart.monthPillar,chart.dayPillar,chart.hourPillar]
+            .map(p=>p.branch).find(br=>br.chinese===b);
+          return br ? br.element : '';
+        });
+        const pin = c.branches.map(b=> {
+          const br = [chart.yearPillar,chart.monthPillar,chart.dayPillar,chart.hourPillar]
+            .map(p=>p.branch).find(br=>br.chinese===b);
+          return br ? br.pinyin : '';
+        });
+        html += `<tr>` +
+                `<td>${b1}, ${b2}</td>` +
+                `<td>${pin.join(', ')}</td>` +
+                `<td>${el1.join(', ')}</td>` +
+                `</tr>`;
       });
       html += '</tbody></table>';
+
       section.innerHTML = html;
     }
   </script>
