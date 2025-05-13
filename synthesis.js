@@ -1,7 +1,5 @@
 // synthesis.js - Cross-System Synthesis Module
 
-// synthesis.js - Cross-System Synthesis Module
-
 // Define local copies of the constants we need
 const INTERACTIONS = {
   combinations: [
@@ -57,9 +55,6 @@ const INTERACTIONS = {
   ]
 };
 
-
-// Import necessary constants from other modules
-import { INTERACTIONS } from './bazi.js';
 
 // Define influence categories
 const INFLUENCE_CATEGORIES = {
