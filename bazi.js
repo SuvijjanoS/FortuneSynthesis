@@ -537,7 +537,7 @@ export function calculateLuckPillars(birthData, gender) {
     if (isForward) {
     return jieTerms.find(term => term.date > solarBirthTime);
   } else {
-    const reversedTerms = [...jieTerms].reverse();
+    const reversedTerms = [...jieTerms].reverse(); 
     return reversedTerms.find(term => term.date < solarBirthTime);
   }
 }
@@ -579,7 +579,7 @@ export function identifyInteractions(baziChart) {
         type: 'SixCombination',
         branches: combo.branches,
         result: combo.result,
-        pillars: [...pillars1, ...pillars2]
+        pillars: [pillars1, pillars2]
       });
     }
   });
@@ -621,7 +621,7 @@ export function identifyInteractions(baziChart) {
       results.clashes.push({
         type: 'SixClash',
         branches: clash.branches,
-        pillars: [...pillars1, ...pillars2]
+        pillars: [pillars1, pillars2]
       });
     }
   });
@@ -636,7 +636,7 @@ export function identifyInteractions(baziChart) {
       results.harms.push({
         type: 'SixHarm',
         branches: harm.branches,
-        pillars: [...pillars1, ...pillars2]
+        pillars: [pillars1, pillars2]
       });
     }
   });
@@ -663,7 +663,7 @@ export function identifyInteractions(baziChart) {
     results.penalties.push({
       type: 'UncivilizedPenalty',
       branches: [uncivBranch1, uncivBranch2],
-      pillars: [...pillars1, ...pillars2]
+      pillars: [pillars1, pillars2]
     });
   }
   
@@ -681,12 +681,12 @@ export function identifyInteractions(baziChart) {
         pillars.push(...findPillarsWithBranch(baziChart, branch));
       });
       
-      results.penalties.push({
-        type: 'ThreeWayPenalty',
-        branches: penalty.branches,
-        presentBranches: presentBranches,
-        pillars: pillars
-      });
+    results.penalties.push({
+      type: 'ThreeWayPenalty',
+      branches: penalty.branches,
+      presentBranches,
+      pillars
+    });
     }
   });
   
@@ -700,7 +700,7 @@ export function identifyInteractions(baziChart) {
       results.destructions.push({
         type: 'Destruction',
         branches: destruction.branches,
-        pillars: [...pillars1, ...pillars2]
+        pillars: [pillars1, pillars2]
       });
     }
   });
