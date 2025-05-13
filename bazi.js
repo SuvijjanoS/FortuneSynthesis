@@ -15,149 +15,16 @@ export const HEAVENLY_STEMS = [
 ];
 
 export const EARTHLY_BRANCHES = [
-  { 
-    chinese: '子', 
-    pinyin: 'Zǐ', 
-    animal: 'Rat', 
-    element: 'Water', 
-    number: 1, 
-    hourRange: [23, 1],
-    hiddenStems: [{ chinese: '癸', pinyin: 'Guǐ', element: 'Yin Water', number: 10 }]
-  },
-  { 
-    chinese: '丑', 
-    pinyin: 'Chǒu', 
-    animal: 'Ox', 
-    element: 'Earth', 
-    number: 2, 
-    hourRange: [1, 3],
-    hiddenStems: [
-      { chinese: '己', pinyin: 'Jǐ', element: 'Yin Earth', number: 6 },
-      { chinese: '癸', pinyin: 'Guǐ', element: 'Yin Water', number: 10 },
-      { chinese: '辛', pinyin: 'Xīn', element: 'Yin Metal', number: 8 }
-    ]
-  },
-  { 
-    chinese: '寅', 
-    pinyin: 'Yín', 
-    animal: 'Tiger', 
-    element: 'Wood', 
-    number: 3, 
-    hourRange: [3, 5],
-    hiddenStems: [
-      { chinese: '甲', pinyin: 'Jiǎ', element: 'Yang Wood', number: 1 },
-      { chinese: '丙', pinyin: 'Bǐng', element: 'Yang Fire', number: 3 },
-      { chinese: '戊', pinyin: 'Wù', element: 'Yang Earth', number: 5 }
-    ]
-  },
-  { 
-    chinese: '卯', 
-    pinyin: 'Mǎo', 
-    animal: 'Rabbit', 
-    element: 'Wood', 
-    number: 4, 
-    hourRange: [5, 7],
-    hiddenStems: [{ chinese: '乙', pinyin: 'Yǐ', element: 'Yin Wood', number: 2 }]
-  },
-  { 
-    chinese: '辰', 
-    pinyin: 'Chén', 
-    animal: 'Dragon', 
-    element: 'Earth', 
-    number: 5, 
-    hourRange: [7, 9],
-    hiddenStems: [
-      { chinese: '戊', pinyin: 'Wù', element: 'Yang Earth', number: 5 },
-      { chinese: '乙', pinyin: 'Yǐ', element: 'Yin Wood', number: 2 },
-      { chinese: '癸', pinyin: 'Guǐ', element: 'Yin Water', number: 10 }
-    ]
-  },
-  { 
-    chinese: '巳', 
-    pinyin: 'Sì', 
-    animal: 'Snake', 
-    element: 'Fire', 
-    number: 6, 
-    hourRange: [9, 11],
-    hiddenStems: [
-      { chinese: '丙', pinyin: 'Bǐng', element: 'Yang Fire', number: 3 },
-      { chinese: '庚', pinyin: 'Gēng', element: 'Yang Metal', number: 7 },
-      { chinese: '戊', pinyin: 'Wù', element: 'Yang Earth', number: 5 }
-    ]
-  },
-  { 
-    chinese: '午', 
-    pinyin: 'Wǔ', 
-    animal: 'Horse', 
-    element: 'Fire', 
-    number: 7, 
-    hourRange: [11, 13],
-    hiddenStems: [
-      { chinese: '丁', pinyin: 'Dīng', element: 'Yin Fire', number: 4 },
-      { chinese: '己', pinyin: 'Jǐ', element: 'Yin Earth', number: 6 }
-    ]
-  },
-  { 
-    chinese: '未', 
-    pinyin: 'Wèi', 
-    animal: 'Goat', 
-    element: 'Earth', 
-    number: 8, 
-    hourRange: [13, 15],
-    hiddenStems: [
-      { chinese: '己', pinyin: 'Jǐ', element: 'Yin Earth', number: 6 },
-      { chinese: '丁', pinyin: 'Dīng', element: 'Yin Fire', number: 4 },
-      { chinese: '乙', pinyin: 'Yǐ', element: 'Yin Wood', number: 2 }
-    ]
-  },
-  { 
-    chinese: '申', 
-    pinyin: 'Shēn', 
-    animal: 'Monkey', 
-    element: 'Metal', 
-    number: 9, 
-    hourRange: [15, 17],
-    hiddenStems: [
-      { chinese: '庚', pinyin: 'Gēng', element: 'Yang Metal', number: 7 },
-      { chinese: '壬', pinyin: 'Rén', element: 'Yang Water', number: 9 },
-      { chinese: '戊', pinyin: 'Wù', element: 'Yang Earth', number: 5 }
-    ]
-  },
-  { 
-    chinese: '酉', 
-    pinyin: 'Yǒu', 
-    animal: 'Rooster', 
-    element: 'Metal', 
-    number: 10, 
-    hourRange: [17, 19],
-    hiddenStems: [{ chinese: '辛', pinyin: 'Xīn', element: 'Yin Metal', number: 8 }]
-  },
-  { 
-    chinese: '戌', 
-    pinyin: 'Xū', 
-    animal: 'Dog', 
-    element: 'Earth', 
-    number: 11, 
-    hourRange: [19, 21],
-    hiddenStems: [
-      { chinese: '戊', pinyin: 'Wù', element: 'Yang Earth', number: 5 },
-      { chinese: '辛', pinyin: 'Xīn', element: 'Yin Metal', number: 8 },
-      { chinese: '丁', pinyin: 'Dīng', element: 'Yin Fire', number: 4 }
-    ]
-  },
-  { 
-    chinese: '亥', 
-    pinyin: 'Hài', 
-    animal: 'Pig', 
-    element: 'Water', 
-    number: 12, 
-    hourRange: [21, 23],
-    hiddenStems: [
-      { chinese: '壬', pinyin: 'Rén', element: 'Yang Water', number: 9 },
-      { chinese: '甲', pinyin: 'Jiǎ', element: 'Yang Wood', number: 1 }
-    ]
-  }
-];
+  { chinese: '子', pinyin: 'Zǐ', animal: 'Rat', element: 'Water', number: 1, hourRange: [23, 1], hiddenStems: [{ chinese: '癸', pinyin: 'Guǐ', element: 'Yin Water', number: 10 }] },
+  { chinese: '丑', pinyin: 'Chǒu', animal: 'Ox', element: 'Earth', number: 2, hourRange: [1, 3], hiddenStems: [{ chinese: '己', pinyin: 'Jǐ', element: 'Yin Earth', number: 6 }, { chinese: '癸', pinyin: 'Guǐ', element: 'Yin Water', number: 10 }, { chinese: '辛', pinyin: 'Xīn', element: 'Yin Metal', number: 8 }] },
+  { chinese: '寅', pinyin: 'Yín', animal: 'Tiger', element: 'Wood', number: 3, hourRange: [3, 5], hiddenStems: [{ chinese: '甲', pinyin: 'Jiǎ', element: 'Yang Wood', number: 1 }, { chinese: '丙', pinyin: 'Bǐng', element: 'Yang Fire', number: 3 }, { chinese: '戊', pinyin: 'Wù', element: 'Yang Earth', number: 5 }] },
+  { chinese: '卯', pinyin: 'Mǎo', animal: 'Rabbit', element: 'Wood', number: 4, hourRange: [5, 7], hiddenStems: [{ chinese: '乙', pinyin: 'Yǐ', element: 'Yin Wood', number: 2 }] },
+  { chinese: '辰', pinyin: 'Chén', animal: 'Dragon', element: 'Earth', number: 5, hourRange: [7, 9], hiddenStems: [{ chinese: '戊', pinyin: 'Wù', element: 'Yang Earth', number: 5 }, { chinese: '乙', pinyin: 'Yǐ', element: 'Yin Wood', number: 2 }, { chinese: '癸', pinyin: 'Guǐ', element: 'Yin Water', number: 10 }] },
+  { chinese: '巳', pinyin: 'Sì', animal: 'Snake', element: 'Fire', number: 6, hourRange: [9, 11], hiddenStems: [{ chinese: '丙', pinyin: 'Bǐng', element: 'Yang Fire', number: 3 }, { chinese: '庚', pinyin: 'Gēng', element: 'Yang Metal', number: 7 }, { chinese: '戊', pinyin: 'Wù', element: 'Yang Earth', number: 5 }] },
+  { chinese: '午', pinyin: 'Wǔ', animal: 'Horse', element: 'Fire', number: 7, hourRange: [11, 13], hiddenStems: [{ chinese: '丁', pinyin: 'Dīng', element: 'Yin Fire', number: 4 }, { chinese: '己', pinyin: 'Jǐ', element: 'Yin Earth', number: 6 }] },
+  { chinese: '未', pinyin: 'Wèi', animal: 'Goat', element: 'Earth', number: 8, hourRange: [13, 15], hiddenStems: [{ chinese: '己', pinyin: 'Jǐ', element: 'Yin Earth', number: 6 }, { chinese: '丁', pinyin: 'Dīng', element: 'Yin Fire', number: 4 }, { chinese: '乙', pinyin: 'Yǐ', element: 'Yin Wood', number: 2 }] },
+  { chinese: '申', pinyin: 'Shēn', animal: 'Monkey', element: 'Metal', number: 9, hourRange: [15, 17], hiddenStems: [{ chinese: '庚', pinyin: 'Gēng', element: 'Yang Metal', number: 7 }, { chinese: '壬', pinyin: 'Rén', element: 'Yang Water', number: 9 }, { chinese: '
+
 
 export const SOLAR_TERMS = [
   { name: 'Lichun', chineseName: '立春', meaning: 'Beginning of Spring', degree: 315, type: 'Jie' },
