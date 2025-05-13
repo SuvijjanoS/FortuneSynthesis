@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Astro Calculator</title>
   <style>
-    /* Your existing CSS… */
     .error {
       color: #f44336;
       background: #ffebee;
@@ -13,73 +12,85 @@
       border-radius: 4px;
       margin: 15px 0;
     }
+    .loading { /* optional */ }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Astrology Calculator</h1>
     <div class="input-section">
-      <div class="input-row">
-        <div class="input-group">
-          <label for="birth-date">Birth Date</label>
-          <input type="date" id="birth-date" value="1983-11-11" required>
-        </div>
-        <div class="input-group">
-          <label for="birth-time">Birth Time</label>
-          <input type="time" id="birth-time" value="16:23" required>
-        </div>
-        <div class="input-group">
-          <label for="gender">Gender</label>
-          <select id="gender" required>
-            <option value="male" selected>Male</option>
-            <option value="female">Female</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="input-group location-search">
-        <label for="birth-location">Birth City / Country</label>
-        <input type="text" id="birth-location" value="Bangkok, Thailand" required>
-        <div class="location-suggestions" id="location-suggestions"></div>
-      </div>
-
-      <!-- Hidden coords & tz -->
-      <input type="hidden" id="latitude">
+      <!-- inputs -->
+      <input type="date" id="birth-date" value="1983-11-11" required>
+      <input type="time" id="birth-time" value="16:23" required>
+      <select id="gender" required>
+        <option value="male" selected>Male</option>
+        <option value="female">Female</option>
+      </select>
+      <!-- hidden for simplicity -->
       <input type="hidden" id="longitude" value="100.29">
       <input type="hidden" id="timezone" value="7">
     </div>
 
-    <!-- Single Run button -->
-    <div class="button-group">
-      <button class="calculate-btn" id="calculate-btn">Run Calculations</button>
-    </div>
+    <button id="calculate-btn">Run Calculations</button>
 
-    <!-- Results -->
-    <section id="results-section" style="display:none;"></section>
-
-    <!-- Loading spinner (optional) -->
-    <div id="loading" class="loading" style="display:none;">Calculating charts…</div>
-
-    <!-- Global error tray -->
+    <div id="loading" style="display:none;">Calculating charts…</div>
     <div id="error-message" class="error" style="display:none;"></div>
+    <section id="results-section" style="display:none;"></section>
   </div>
 
-  <!-- Catch all JS errors -->
-  <script>
+  <script type="module">
+    import { calculateBaziChart } from './bazi.js';
+
     window.addEventListener('error', e => {
       const err = document.getElementById('error-message');
       err.style.display = 'block';
       err.textContent = `Error: ${e.message} at ${e.filename}:${e.lineno}`;
     });
+
     window.addEventListener('unhandledrejection', e => {
       const err = document.getElementById('error-message');
       err.style.display = 'block';
       const msg = e.reason?.message || e.reason;
       err.textContent = `Unhandled promise rejection: ${msg}`;
     });
-  </script>
 
-  <!-- Your main module -->
-  <script type="module" src="./bazi.js"></script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('calculate-btn');
+      btn.addEventListener('click', () => {
+        document.getElementById('error-message').style.display = 'none';
+        const dateInput = document.getElementById('birth-date').value;
+        const timeInput = document.getElementById('birth-time').value;
+        const gender = document.getElementById('gender').value;
+        const longitude = parseFloat(document.getElementById('longitude').value);
+        const timezone = parseInt(document.getElementById('timezone').value, 10);
+
+        if (!dateInput || !timeInput) {
+          return displayError('Please enter both birth date and time.');
+        }
+        const [year, month, day] = dateInput.split('-').map(Number);
+        const [hour, minute] = timeInput.split(':').map(Number);
+        const birthDate = new Date(year, month - 1, day, hour, minute);
+        
+        try {
+          const chart = calculateBaziChart(birthDate, { longitude, timezone }, gender);
+          displayResults(chart);
+        } catch (err) {
+          displayError(err.message);
+        }
+      });
+    });
+
+    function displayError(msg) {
+      const err = document.getElementById('error-message');
+      err.style.display = 'block';
+      err.textContent = msg;
+    }
+
+    function displayResults(chart) {
+      const section = document.getElementById('results-section');
+      section.style.display = 'block';
+      section.innerHTML = `<pre>${JSON.stringify(chart, null, 2)}</pre>`;
+    }
+  </script>
 </body>
 </html>
