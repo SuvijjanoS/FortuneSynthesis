@@ -2,9 +2,9 @@
 import { calculateBaziChart, HEAVENLY_STEMS, EARTHLY_BRANCHES, SOLAR_TERMS } from './bazi.js';
 import { calculateLifeGraph, interpretLifeGraph } from './lifegraph.js';
 import { calculateVedicChart, calculateTransits } from './vedic.js';
-import { analyzeSynthesis } from './synthesis.js';
+import synthesis from './synthesis.js';
 
-// Supabase configuration
+// Supabase configuration - PLEASE UPDATE THESE VALUES
 const SUPABASE_URL = 'YOUR_SUPABASE_URL';
 const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
@@ -90,22 +90,46 @@ async function searchLocation(query) {
     }
 }
 
-function selectLocation(location) {
+async function selectLocation(location) {
     elements.birthLocation.value = location.display_name;
-    elements.latitude.value = location.lat;
-    elements.longitude.value = location.lon;
     
-    // Estimate timezone from longitude
-    const timezone = Math.round(parseFloat(location.lon) / 15);
+    // Set hidden inputs
+    const lat = parseFloat(location.lat);
+    const lon = parseFloat(location.lon);
+    
+    elements.latitude.value = lat;
+    elements.longitude.value = lon;
+    
+    // Get timezone for this location
+    const timezone = await getTimezoneForLocation(lat, lon);
     elements.timezone.value = timezone;
     
     currentLocation = {
-        latitude: parseFloat(location.lat),
-        longitude: parseFloat(location.lon),
+        latitude: lat,
+        longitude: lon,
         timezone: timezone
     };
     
     elements.locationSuggestions.style.display = 'none';
+}
+
+async function getTimezoneForLocation(lat, lon) {
+    try {
+        // Using timezone API (you might need to replace this with your preferred service)
+        const timestamp = Math.floor(Date.now() / 1000);
+        const response = await fetch(`https://maps.googleapis.com/maps/api/timezone/json?location=${lat},${lon}&timestamp=${timestamp}&key=YOUR_GOOGLE_API_KEY`);
+        const data = await response.json();
+        
+        if (data.status === 'OK') {
+            // Return offset in hours
+            return (data.rawOffset + data.dstOffset) / 3600;
+        }
+    } catch (error) {
+        console.error('Timezone fetch error:', error);
+    }
+    
+    // Fallback: estimate timezone from longitude
+    return Math.round(lon / 15);
 }
 
 // Calculate button handler
@@ -149,13 +173,13 @@ async function calculateCharts() {
         displayBaziChart(baziChart);
         
         // Level 4: Calculate Vedic Chart
-        const vedicChart = calculateVedicChart(birthDate, location);
-        const transits = calculateTransits(birthDate, location, 120);
+        const vedicChart = await calculateVedicChart(birthDate, location);
+        const transits = await calculateTransits(birthDate, location, 120);
         displayVedicChart(vedicChart, transits);
         
         // Level 5: Synthesis
-        const synthesis = analyzeSynthesis(baziChart, lifeGraph, vedicChart, transits);
-        displaySynthesis(synthesis);
+        const synthesisResult = synthesis.analyzeSynthesis(baziChart, lifeGraph, vedicChart, transits);
+        displaySynthesis(synthesisResult);
         
         // Show results
         elements.resultsSection.style.display = 'block';
@@ -170,7 +194,7 @@ async function calculateCharts() {
                 lifeGraph,
                 vedicChart,
                 transits,
-                synthesis
+                synthesis: synthesisResult
             });
         }
         
@@ -198,7 +222,7 @@ function validateInputs() {
         return false;
     }
     
-    if (!elements.latitude.value || !elements.longitude.value || !elements.timezone.value) {
+    if (!elements.birthLocation.value || !elements.latitude.value || !elements.longitude.value) {
         showError('Please select a birth location');
         return false;
     }
@@ -572,29 +596,44 @@ function getHouseSignificance(houseNumber) {
 }
 
 // Level 5: Synthesis
-function displaySynthesis(synthesis) {
+function displaySynthesis(synthesisResult) {
     const container = document.getElementById('synthesis');
     
     let html = '<h4>Character Analysis</h4>';
-    html += `<p>${synthesis.character.description}</p>`;
+    html += `<p>${synthesisResult.character.description}</p>`;
     
     html += '<h4>Major Life Themes</h4><ul>';
-    synthesis.lifeThemes.forEach(theme => {
+    synthesisResult.lifeThemes.forEach(theme => {
         html += `<li>${theme}</li>`;
     });
     html += '</ul>';
     
     html += '<h4>Significant Periods</h4>';
-    synthesis.significantPeriods.forEach(period => {
+    synthesisResult.significantPeriods.forEach(period => {
         const overlapClass = `overlap-${period.overlapCount}`;
         html += `
             <div class="transit-event">
                 <strong>${period.startDate.toLocaleDateString()} - ${period.endDate.toLocaleDateString()}</strong>
                 <span class="overlap-indicator ${overlapClass}">${period.overlapCount} overlaps</span><br>
-                <em>Sources:</em> ${period.sources.join(', ')}<br>
+                <em>Sources:</em> ${period.sources}<br>
                 <p>${period.interpretation}</p>
             </div>
         `;
+    });
+    
+    html += '<h4>All Convergence Periods</h4>';
+    synthesisResult.convergencePeriods.forEach(period => {
+        if (!synthesisResult.significantPeriods.includes(period)) {
+            const overlapClass = `overlap-${period.overlapCount}`;
+            html += `
+                <div class="transit-event">
+                    <strong>${period.startDate.toLocaleDateString()} - ${period.endDate.toLocaleDateString()}</strong>
+                    <span class="overlap-indicator ${overlapClass}">${period.overlapCount} overlaps</span><br>
+                    <em>Sources:</em> ${period.systems.join(', ')}<br>
+                    <p>${period.interpretation}</p>
+                </div>
+            `;
+        }
     });
     
     container.innerHTML = html;
@@ -619,8 +658,7 @@ function hideError() {
 async function initializeSupabase() {
     try {
         if (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY') {
-            const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
-            supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            supabase = window.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         }
     } catch (error) {
         console.error('Failed to initialize Supabase:', error);
@@ -657,3 +695,13 @@ async function saveToSupabase(data) {
 document.addEventListener('DOMContentLoaded', () => {
     initializeSupabase();
 });
+
+// Export functions for testing
+export {
+    calculateCharts,
+    calculateDateConversions,
+    displayBaziChart,
+    displayLifeGraph,
+    displayVedicChart,
+    displaySynthesis
+};
