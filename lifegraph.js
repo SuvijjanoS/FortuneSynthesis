@@ -200,9 +200,19 @@ export function interpretLifeGraph(lifeGraph) {
   return interpretation;
 }
 
+
+
 // Export constants if needed by other modules
 export {
   THAI_LUNAR_MONTHS,
   THAI_ZODIAC_ANIMALS,
   THAI_WEEKDAYS
 };
+
+
+  // Return simplified array for app.js compatibility
+  // Each item has value property which is the actual value (1-12)
+  return lifeGraph.map(point => ({
+    ...point,
+    value: point.value // Keep actual value 1-12
+  }));
