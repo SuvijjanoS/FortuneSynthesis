@@ -1,5 +1,5 @@
 // BaZi ES Module - Corrected and Complete
-
+console.log('bazi.js module loaded');
 // Constants
 export const HEAVENLY_STEMS = [
   { chinese: '甲', pinyin: 'Jiǎ', element: 'Yang Wood', number: 1 },
