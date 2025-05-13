@@ -1067,3 +1067,4 @@ const EARTHLY_BRANCHES = [
 ];
 
 window.calcBaziChart = calculateBaziChart;   // makes it callable from the page
+js\nwindow.calcBaziChart = calculateBaziChart;\n
