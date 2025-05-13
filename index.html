@@ -1,4 +1,3 @@
-<!-- index.html  –  MINIMISED INPUT PANEL -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,16 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Astro Calculator</title>
   <style>
-    /* unchanged CSS trimmed for brevity … */
+    /* …your existing CSS… */
+    .error {
+      color: #f44336;
+      background: #ffebee;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 15px 0;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Astrology Calculator</h1>
 
-    <!-- Top run-button (so user needn’t scroll) -->
+    <!-- Top Run button -->
     <div class="button-group">
-        <button class="calculate-btn" id="calculate-btn-top">Run Calculations</button>
+      <button class="calculate-btn" id="calculate-btn-top">Run Calculations</button>
     </div>
 
     <div class="input-section">
@@ -35,8 +41,6 @@
             <option value="female">Female</option>
           </select>
         </div>
-
-        
       </div>
 
       <div class="input-group location-search">
@@ -45,25 +49,42 @@
         <div class="location-suggestions" id="location-suggestions"></div>
       </div>
 
-      <!-- hidden coordinates filled by JS -->
+      <!-- hidden coords & tz -->
       <input type="hidden" id="latitude">
       <input type="hidden" id="longitude" value="100.29">
       <input type="hidden" id="timezone" value="7">
     </div>
 
-    <!-- Bottom run-button (second of the two) -->
+    <!-- Bottom Run button -->
     <div class="button-group">
-        <button class="calculate-btn" id="calculate-btn">Run Calculations</button>
+      <button class="calculate-btn" id="calculate-btn">Run Calculations</button>
     </div>
 
-    <!-- results go here (kept, but tabs removed) -->
+    <!-- where results get dumped -->
     <section id="results-section" style="display:none;"></section>
 
     <!-- global error tray -->
-    <div id="error-message" style="display:none;" class="error"></div>
+    <div id="error-message" class="error" style="display:none;"></div> :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
   </div>
 
-  <!-- scripts (untouched) -->
+  <!-- make sure this runs before app.js so we catch anything -->
+  <script>
+    // catch all JS errors
+    window.addEventListener('error', function(e) {
+      const err = document.getElementById('error-message');
+      err.style.display = 'block';
+      err.textContent = `Error: ${e.message} at ${e.filename}:${e.lineno}:${e.colno}`;
+    });
+    // catch unhandled Promise rejections
+    window.addEventListener('unhandledrejection', function(e) {
+      const err = document.getElementById('error-message');
+      err.style.display = 'block';
+      const msg = e.reason && e.reason.message ? e.reason.message : e.reason;
+      err.textContent = `Unhandled promise rejection: ${msg}`;
+    });
+  </script>
+
+  <!-- your existing Supabase & main script -->
   <script type="module" src="./app.js"></script>
 </body>
 </html>
