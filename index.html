@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
@@ -19,14 +18,12 @@
   <div class="container">
     <h1>Astrology Calculator</h1>
     <div class="input-section">
-      <!-- inputs -->
       <input type="date" id="birth-date" value="1983-11-11" required>
       <input type="time" id="birth-time" value="16:23" required>
       <select id="gender" required>
         <option value="male" selected>Male</option>
         <option value="female">Female</option>
       </select>
-      <!-- hidden for simplicity -->
       <input type="hidden" id="longitude" value="100.29">
       <input type="hidden" id="timezone" value="7">
     </div>
@@ -41,13 +38,17 @@
   <script type="module">
     import { calculateBaziChart } from './bazi.js';
 
+    console.log('Module loaded');
+
     window.addEventListener('error', e => {
+      console.error('Global error handler:', e);
       const err = document.getElementById('error-message');
       err.style.display = 'block';
       err.textContent = `Error: ${e.message} at ${e.filename}:${e.lineno}`;
     });
 
     window.addEventListener('unhandledrejection', e => {
+      console.error('Unhandled promise rejection:', e);
       const err = document.getElementById('error-message');
       err.style.display = 'block';
       const msg = e.reason?.message || e.reason;
@@ -55,14 +56,21 @@
     });
 
     document.addEventListener('DOMContentLoaded', () => {
+      console.log('DOM fully loaded');
       const btn = document.getElementById('calculate-btn');
+      console.log('Button element:', btn);
+
       btn.addEventListener('click', () => {
+        console.log('Run Calculations clicked');
         document.getElementById('error-message').style.display = 'none';
+
         const dateInput = document.getElementById('birth-date').value;
         const timeInput = document.getElementById('birth-time').value;
         const gender = document.getElementById('gender').value;
         const longitude = parseFloat(document.getElementById('longitude').value);
         const timezone = parseInt(document.getElementById('timezone').value, 10);
+
+        console.log({ dateInput, timeInput, gender, longitude, timezone });
 
         if (!dateInput || !timeInput) {
           return displayError('Please enter both birth date and time.');
@@ -70,27 +78,30 @@
         const [year, month, day] = dateInput.split('-').map(Number);
         const [hour, minute] = timeInput.split(':').map(Number);
         const birthDate = new Date(year, month - 1, day, hour, minute);
-        
+        console.log('Computed birthDate:', birthDate);
+
         try {
           const chart = calculateBaziChart(birthDate, { longitude, timezone }, gender);
+          console.log('Chart result:', chart);
           displayResults(chart);
         } catch (err) {
+          console.error('Error in calculateBaziChart:', err);
           displayError(err.message);
         }
       });
     });
 
     function displayError(msg) {
+      console.log('Displaying error:', msg);
       const err = document.getElementById('error-message');
       err.style.display = 'block';
       err.textContent = msg;
     }
 
     function displayResults(chart) {
+      console.log('Displaying results');
       const section = document.getElementById('results-section');
       section.style.display = 'block';
       section.innerHTML = `<pre>${JSON.stringify(chart, null, 2)}</pre>`;
     }
   </script>
-</body>
-</html>
