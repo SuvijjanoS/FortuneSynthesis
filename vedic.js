@@ -2,6 +2,15 @@
 // Requires ephemeris data files named semo_00.se1 through semo_162.se1
 // and sepl_00.se1 through sepl_162.se1
 
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+// Supabase configuration - should match your main app config
+const SUPABASE_URL = 'https://bpyllzwabiseudjplixz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJweWxsendhYmlzZXVkanBsaXh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxMDk0MzcsImV4cCI6MjA2MjY4NTQzN30.kQl_L5DhUTU-GMkdveGGu_mSoW11fqDMAmlsmaHo7BA';
+
+// Initialize Supabase client
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 // Constants
 const ZODIAC_SIGNS = [
   'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
