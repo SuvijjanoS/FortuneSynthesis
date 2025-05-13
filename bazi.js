@@ -1,4 +1,4 @@
-// BaZi ES Module - Corrected and Complete for Test Environment
+// BaZi ES Module - Corrected and Complete
 
 // Constants
 export const HEAVENLY_STEMS = [
@@ -534,10 +534,58 @@ export function calculateLuckPillars(birthData, gender) {
   for (let i = 0; i < 10; i++) {
     let stemIndex, branchIndex;
     
-    if (isForward) {
+    if (isForwardProgression) {
+      stemIndex = (monthStemIndex + i) % 10;
+      branchIndex = (monthBranchIndex + i) % 12;
+    } else {
+      stemIndex = (monthStemIndex - i + 10) % 10;
+      branchIndex = (monthBranchIndex - i + 12) % 12;
+    }
+    
+    const stem = HEAVENLY_STEMS[stemIndex];
+    const branch = EARTHLY_BRANCHES[branchIndex];
+    
+    luckPillars.push({
+      startAge: startAge + i * 10,
+      endAge: startAge + (i + 1) * 10 - 1,
+      stem: stem,
+      branch: branch
+    });
+  }
+  
+  return luckPillars;
+}
+
+export function findNextJieTerm(birthDate, location, isForward) {
+  const solarBirthTime = calculateLocalSolarTime(
+    birthDate,
+    location.longitude,
+    location.timezone * 60
+  );
+  
+  const year = solarBirthTime.getFullYear();
+  
+  const jieTerms = SOLAR_TERMS
+    .filter(term => term.type === 'Jie')
+    .map(term => ({
+      name: term.name,
+      date: calculateSolarTerm(year, term.degree)
+    }));
+  
+  jieTerms.push({
+    name: 'Lichun',
+    date: calculateSolarTerm(year + 1, 315)
+  });
+  
+  jieTerms.unshift({
+    name: 'Dahan',
+    date: calculateSolarTerm(year - 1, 300)
+  });
+  
+  if (isForward) {
     return jieTerms.find(term => term.date > solarBirthTime);
   } else {
-    const reversedTerms = [...jieTerms].reverse(); 
+    const reversedTerms = [...jieTerms].reverse();
     return reversedTerms.find(term => term.date < solarBirthTime);
   }
 }
@@ -579,7 +627,7 @@ export function identifyInteractions(baziChart) {
         type: 'SixCombination',
         branches: combo.branches,
         result: combo.result,
-        pillars: [pillars1, pillars2]
+        pillars: [...pillars1, ...pillars2]
       });
     }
   });
@@ -621,7 +669,7 @@ export function identifyInteractions(baziChart) {
       results.clashes.push({
         type: 'SixClash',
         branches: clash.branches,
-        pillars: [pillars1, pillars2]
+        pillars: [...pillars1, ...pillars2]
       });
     }
   });
@@ -636,7 +684,7 @@ export function identifyInteractions(baziChart) {
       results.harms.push({
         type: 'SixHarm',
         branches: harm.branches,
-        pillars: [pillars1, pillars2]
+        pillars: [...pillars1, ...pillars2]
       });
     }
   });
@@ -663,7 +711,7 @@ export function identifyInteractions(baziChart) {
     results.penalties.push({
       type: 'UncivilizedPenalty',
       branches: [uncivBranch1, uncivBranch2],
-      pillars: [pillars1, pillars2]
+      pillars: [...pillars1, ...pillars2]
     });
   }
   
@@ -681,12 +729,12 @@ export function identifyInteractions(baziChart) {
         pillars.push(...findPillarsWithBranch(baziChart, branch));
       });
       
-    results.penalties.push({
-      type: 'ThreeWayPenalty',
-      branches: penalty.branches,
-      presentBranches,
-      pillars
-    });
+      results.penalties.push({
+        type: 'ThreeWayPenalty',
+        branches: penalty.branches,
+        presentBranches: presentBranches,
+        pillars: pillars
+      });
     }
   });
   
@@ -700,7 +748,7 @@ export function identifyInteractions(baziChart) {
       results.destructions.push({
         type: 'Destruction',
         branches: destruction.branches,
-        pillars: [pillars1, pillars2]
+        pillars: [...pillars1, ...pillars2]
       });
     }
   });
@@ -757,103 +805,3 @@ export function calculateBaziChart(birthDate, location, gender) {
   
   return baziChart;
 }
-
-// Export a test function that displays the constants correctly
-export function displayConstants() {
-  const html = `
-    <h3>BaZi Constants</h3>
-    <h4>Heavenly Stems (天干)</h4>
-    <table>
-      <tr><th>Chinese</th><th>Pinyin</th><th>Element</th><th>Number</th></tr>
-      ${HEAVENLY_STEMS.map(stem => `
-        <tr>
-          <td class="chinese-text">${stem.chinese}</td>
-          <td>${stem.pinyin}</td>
-          <td>${stem.element}</td>
-          <td>${stem.number}</td>
-        </tr>
-      `).join('')}
-    </table>
-    
-    <h4>Earthly Branches (地支)</h4>
-    <table>
-      <tr><th>Chinese</th><th>Pinyin</th><th>Animal</th><th>Element</th><th>Number</th><th>Hour Range</th></tr>
-      ${EARTHLY_BRANCHES.map(branch => `
-        <tr>
-          <td class="chinese-text">${branch.chinese}</td>
-          <td>${branch.pinyin}</td>
-          <td>${branch.animal}</td>
-          <td>${branch.element}</td>
-          <td>${branch.number}</td>
-          <td>${branch.hourRange[0]}:00-${branch.hourRange[1]}:00</td>
-        </tr>
-      `).join('')}
-    </table>
-    
-    <h4>Solar Terms (节气)</h4>
-    <table>
-      <tr><th>Name</th><th>Chinese</th><th>Meaning</th><th>Degree</th><th>Type</th></tr>
-      ${SOLAR_TERMS.map(term => `
-        <tr>
-          <td>${term.name}</td>
-          <td class="chinese-text">${term.chineseName}</td>
-          <td>${term.meaning}</td>
-          <td>${term.degree}°</td>
-          <td>${term.type}</td>
-        </tr>
-      `).join('')}
-    </table>
-  `;
-  
-  return html;
-}dProgression) {
-      stemIndex = (monthStemIndex + i + 1) % 10;
-      branchIndex = (monthBranchIndex + i + 1) % 12;
-    } else {
-      stemIndex = (monthStemIndex - i - 1 + 10) % 10;
-      branchIndex = (monthBranchIndex - i - 1 + 12) % 12;
-    }
-    
-    const stem = HEAVENLY_STEMS[stemIndex];
-    const branch = EARTHLY_BRANCHES[branchIndex];
-    
-    luckPillars.push({
-      startAge: startAge + i * 10,
-      endAge: startAge + (i + 1) * 10 - 1,
-      stem: stem,
-      branch: branch
-    });
-  }
-  
-  return luckPillars;
-}
-
-export function findNextJieTerm(birthDate, location, isForward) {
-  const solarBirthTime = calculateLocalSolarTime(
-    birthDate,
-    location.longitude,
-    location.timezone * 60
-  );
-  
-  const year = solarBirthTime.getFullYear();
-  
-  const jieTerms = SOLAR_TERMS
-    .filter(term => term.type === 'Jie')
-    .map(term => ({
-      name: term.name,
-      date: calculateSolarTerm(year, term.degree)
-    }));
-  
-  jieTerms.push({
-    name: 'Lichun',
-    date: calculateSolarTerm(year + 1, 315)
-  });
-  
-  jieTerms.unshift({
-    name: 'Xiaohan',
-    date: calculateSolarTerm(year - 1, 285)
-  });
-  
-  jieTerms.sort((a, b) => a.date - b.date);
-  
-  if (isForwar
