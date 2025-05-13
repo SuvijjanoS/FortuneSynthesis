@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaZi Module Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        pre {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border-left: 4px solid #4CAF50;
+            background: #f9f9f9;
+        }
+        .test-title {
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 10px;
+        }
+        .error {
+            color: #f44336;
+            font-weight: bold;
+        }
+        .success {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        #output {
+            white-space: pre-wrap;
+            font-size: 14px;
+        }
+        .control-panel {
+            margin: 20px 0;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 5px;
+        }
+        .control-panel input, .control-panel select {
+            margin: 5px;
+            padding: 5px;
+        }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BaZi Module Test Suite</h1>
+        
+        <div class="control-panel">
+            <h3>Custom Test</h3>
+            <div>
+                <label>Birth Date: <input type="date" id="test-date" value="1990-05-15"></label>
+                <label>Birth Time: <input type="time" id="test-time" value="14:30"></label>
+            </div>
+            <div>
+                <label>Latitude: <input type="number" id="test-lat" value="39.9042" step="0.0001"></label>
+                <label>Longitude: <input type="number" id="test-long" value="116.4074" step="0.0001"></label>
+                <label>Timezone: <input type="number" id="test-tz" value="8" step="0.5"></label>
+            </div>
+            <div>
+                <label>Gender: 
+                    <select id="test-gender">
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                </label>
+                <button onclick="runCustomTest()">Run Custom Test</button>
+            </div>
+        </div>
+        
+        <div id="test-results">
+            <h3>Test Results</h3>
+            <div id="output"></div>
+        </div>
+        
+        <div class="control-panel">
+            <button onclick="runAllTests()">Run All Tests</button>
+            <button onclick="clearOutput()">Clear Output</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { 
+            calculateBaziChart, 
+            calculateYearPillar,
+            calculateMonthPillar,
+            calculateDayPillar,
+            calculateHourPillar,
+            calculateLuckPillars,
+            identifyInteractions,
+            HEAVENLY_STEMS,
+            EARTHLY_BRANCHES
+        } from './bazi.js';
+        
+        const output = document.getElementById('output');
+        
+        // Make functions available globally for button clicks
+        window.log = function(message) {
+            output.innerHTML += message + '\n';
+        };
+        
+        window.clearOutput = function() {
+            output.innerHTML = '';
+        };
+        
+        window.runCustomTest = function() {
+            clearOutput();
+            
+            const date = new Date(
+                document.getElementById('test-date').value + 'T' + 
+                document.getElementById('test-time').value
+            );
+            
+            const location = {
+                latitude: parseFloat(document.getElementById('test-lat').value),
+                longitude: parseFloat(document.getElementById('test-long').value),
+                timezone: parseFloat(document.getElementById('test-tz').value)
+            };
+            
+            const gender = document.getElementById('test-gender').value;
+            
+            log('=== Custom Test ===');
+            log(`Date: ${date}`);
+            log(`Location: ${JSON.stringify(location)}`);
+            log(`Gender: ${gender}`);
+            log('');
+            
+            try {
+                const chart = calculateBaziChart(date, location, gender);
+                
+                log('BaZi Chart:');
+                log(`Year Pillar: ${chart.yearPillar.stem.chinese}${chart.yearPillar.branch.chinese} (${chart.yearPillar.stem.pinyin} ${chart.yearPillar.branch.pinyin})`);
+                log(`Month Pillar: ${chart.monthPillar.stem.chinese}${chart.monthPillar.branch.chinese} (${chart.monthPillar.stem.pinyin} ${chart.monthPillar.branch.pinyin})`);
+                log(`Day Pillar: ${chart.dayPillar.stem.chinese}${chart.dayPillar.branch.chinese} (${chart.dayPillar.stem.pinyin} ${chart.dayPillar.branch.pinyin})`);
+                log(`Hour Pillar: ${chart.hourPillar.stem.chinese}${chart.hourPillar.branch.chinese} (${chart.hourPillar.stem.pinyin} ${chart.hourPillar.branch.pinyin})`);
+                log('');
+                
+                log('Luck Pillars:');
+                chart.luckPillars.slice(0, 5).forEach(pillar => {
+                    log(`Age ${pillar.startAge}-${pillar.endAge}: ${pillar.stem.chinese}${pillar.branch.chinese}`);
+                });
+                log('');
+                
+                log('Interactions:');
+                log(JSON.stringify(chart.interactions, null, 2));
+                
+            } catch (error) {
+                log(`ERROR: ${error.message}`);
+            }
+        };
+        
+        window.runAllTests = function() {
+            clearOutput();
+            
+            // Test 1: Basic functionality
+            log('=== Test 1: Basic Functionality ===');
+            const testDate = new Date('1990-05-15T14:30:00');
+            const testLocation = { latitude: 39.9042, longitude: 116.4074, timezone: 8 };
+            
+            try {
+                const chart = calculateBaziChart(testDate, testLocation, 'male');
+                log('✓ Basic chart calculation successful');
+                log(`Day Master: ${chart.dayPillar.stem.element}`);
+            } catch (error) {
+                log(`✗ Error: ${error.message}`);
+            }
+            log('');
+            
+            // Test 2: Year transition
+            log('=== Test 2: Year Transition (Lichun) ===');
+            const beforeLichun = new Date('2000-02-03T12:00:00');
+            const afterLichun = new Date('2000-02-05T12:00:00');
+            
+            try {
+                const chart1 = calculateBaziChart(beforeLichun, testLocation, 'male');
+                const chart2 = calculateBaziChart(afterLichun, testLocation, 'male');
+                log(`Before Lichun: Year ${chart1.yearPillar.year} - ${chart1.yearPillar.branch.animal}`);
+                log(`After Lichun: Year ${chart2.yearPillar.year} - ${chart2.yearPillar.branch.animal}`);
+                log(chart1.yearPillar.branch.animal !== chart2.yearPillar.branch.animal ? 
+                    '✓ Year transition working correctly' : 
+                    '✗ Year transition not working');
+            } catch (error) {
+                log(`✗ Error: ${error.message}`);
+            }
+            log('');
+            
+            // Test 3: Hour boundaries
+            log('=== Test 3: Hour Boundaries ===');
+            const hours = [0, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23];
+            const expectedAnimals = ['Rat', 'Rat', 'Tiger', 'Rabbit', 'Dragon', 'Snake', 'Horse', 'Goat', 'Monkey', 'Rooster', 'Dog', 'Pig', 'Rat'];
+            
+            let hourSuccess = true;
+            hours.forEach((hour, index) => {
+                const testDate = new Date(`1990-05-15T${hour.toString().padStart(2, '0')}:00:00`);
+                try {
+                    const chart = calculateBaziChart(testDate, testLocation, 'male');
+                    const animal = chart.hourPillar.branch.animal;
+                    if (animal !== expectedAnimals[index]) {
+                        log(`✗ Hour ${hour}: Expected ${expectedAnimals[index]}, got ${animal}`);
+                        hourSuccess = false;
+                    }
+                } catch (error) {
+                    log(`✗ Hour ${hour}: ${error.message}`);
+                    hourSuccess = false;
+                }
+            });
+            
+            if (hourSuccess) {
+                log('✓ All hour boundaries correct');
+            }
+            log('');
+            
+            // Test 4: Gender differences in luck pillars
+            log('=== Test 4: Gender Differences ===');
+            try {
+                const maleChart = calculateBaziChart(testDate, testLocation, 'male');
+                const femaleChart = calculateBaziChart(testDate, testLocation, 'female');
+                
+                log('Male first luck pillar: ' + 
+                    maleChart.luckPillars[0].stem.chinese + maleChart.luckPillars[0].branch.chinese);
+                log('Female first luck pillar: ' + 
+                    femaleChart.luckPillars[0].stem.chinese + femaleChart.luckPillars[0].branch.chinese);
+                
+                const different = maleChart.luckPillars[0].stem.chinese !== femaleChart.luckPillars[0].stem.chinese ||
+                                maleChart.luckPillars[0].branch.chinese !== femaleChart.luckPillars[0].branch.chinese;
+                
+                log(different ? '✓ Gender differences working' : '✗ Gender differences not working');
+            } catch (error) {
+                log(`✗ Error: ${error.message}`);
+            }
+            log('');
+            
+            // Test 5: Interactions
+            log('=== Test 5: Interactions ===');
+            try {
+                const chart = calculateBaziChart(testDate, testLocation, 'male');
+                const interactions = chart.interactions;
+                
+                log(`Combinations: ${interactions.combinations.length}`);
+                log(`Three Harmonies: ${interactions.threeHarmonies.length}`);
+                log(`Clashes: ${interactions.clashes.length}`);
+                log(`Harms: ${interactions.harms.length}`);
+                log(`Penalties: ${interactions.penalties.length}`);
+                log(`Destructions: ${interactions.destructions.length}`);
+                log('✓ Interaction detection working');
+            } catch (error) {
+                log(`✗ Error: ${error.message}`);
+            }
+            
+            log('\n=== All Tests Complete ===');
+        };
+        
+        // Run all tests on load
+        runAllTests();
+    </script>
+</body>
+</html>
