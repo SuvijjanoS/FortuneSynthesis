@@ -1,4 +1,4 @@
-// BaZi ES Module - Complete Corrected Version
+// BaZi ES Module
 console.log('bazi.js module loaded - v3.0 complete');
 
 // Constants with proper Pinyin and all required data
@@ -167,45 +167,45 @@ export const EARTHLY_BRANCHES = [
 ];
 
 export const SOLAR_TERMS = [
-  { name: 'Lìchūn', chineseName: '立春', meaning: 'Beginning of Spring', degree: 315, type: 'Jié' },
-  { name: 'Yǔshuǐ', chineseName: '雨水', meaning: 'Rain Water', degree: 330, type: 'Zhōngqì' },
-  { name: 'Jīngzhé', chineseName: '惊蛰', meaning: 'Awakening of Insects', degree: 345, type: 'Jié' },
-  { name: 'Chūnfēn', chineseName: '春分', meaning: 'Spring Equinox', degree: 0, type: 'Zhōngqì' },
-  { name: 'Qīngmíng', chineseName: '清明', meaning: 'Pure Brightness', degree: 15, type: 'Jié' },
-  { name: 'Gǔyǔ', chineseName: '谷雨', meaning: 'Grain Rain', degree: 30, type: 'Zhōngqì' },
-  { name: 'Lìxià', chineseName: '立夏', meaning: 'Beginning of Summer', degree: 45, type: 'Jié' },
-  { name: 'Xiǎomǎn', chineseName: '小满', meaning: 'Grain Full', degree: 60, type: 'Zhōngqì' },
-  { name: 'Mángzhòng', chineseName: '芒种', meaning: 'Grain in Ear', degree: 75, type: 'Jié' },
-  { name: 'Xiàzhì', chineseName: '夏至', meaning: 'Summer Solstice', degree: 90, type: 'Zhōngqì' },
-  { name: 'Xiǎoshǔ', chineseName: '小暑', meaning: 'Slight Heat', degree: 105, type: 'Jié' },
-  { name: 'Dàshǔ', chineseName: '大暑', meaning: 'Great Heat', degree: 120, type: 'Zhōngqì' },
-  { name: 'Lìqiū', chineseName: '立秋', meaning: 'Beginning of Autumn', degree: 135, type: 'Jié' },
-  { name: 'Chǔshǔ', chineseName: '处暑', meaning: 'Limit of Heat', degree: 150, type: 'Zhōngqì' },
-  { name: 'Báilù', chineseName: '白露', meaning: 'White Dew', degree: 165, type: 'Jié' },
-  { name: 'Qiūfēn', chineseName: '秋分', meaning: 'Autumn Equinox', degree: 180, type: 'Zhōngqì' },
-  { name: 'Hánlù', chineseName: '寒露', meaning: 'Cold Dew', degree: 195, type: 'Jié' },
-  { name: 'Shuāngjiàng', chineseName: '霜降', meaning: 'Frost Descent', degree: 210, type: 'Zhōngqì' },
-  { name: 'Lìdōng', chineseName: '立冬', meaning: 'Beginning of Winter', degree: 225, type: 'Jié' },
-  { name: 'Xiǎoxuě', chineseName: '小雪', meaning: 'Slight Snow', degree: 240, type: 'Zhōngqì' },
-  { name: 'Dàxuě', chineseName: '大雪', meaning: 'Great Snow', degree: 255, type: 'Jié' },
-  { name: 'Dōngzhì', chineseName: '冬至', meaning: 'Winter Solstice', degree: 270, type: 'Zhōngqì' },
-  { name: 'Xiǎohán', chineseName: '小寒', meaning: 'Slight Cold', degree: 285, type: 'Jié' },
-  { name: 'Dàhán', chineseName: '大寒', meaning: 'Great Cold', degree: 300, type: 'Zhōngqì' }
+  { name: 'Lichun', chineseName: '立春', meaning: 'Beginning of Spring', degree: 315, type: 'Jie' },
+  { name: 'Yushui', chineseName: '雨水', meaning: 'Rain Water', degree: 330, type: 'Zhongqi' },
+  { name: 'Jingzhe', chineseName: '惊蛰', meaning: 'Awakening of Insects', degree: 345, type: 'Jie' },
+  { name: 'Chunfen', chineseName: '春分', meaning: 'Spring Equinox', degree: 0, type: 'Zhongqi' },
+  { name: 'Qingming', chineseName: '清明', meaning: 'Pure Brightness', degree: 15, type: 'Jie' },
+  { name: 'Guyu', chineseName: '谷雨', meaning: 'Grain Rain', degree: 30, type: 'Zhongqi' },
+  { name: 'Lixia', chineseName: '立夏', meaning: 'Beginning of Summer', degree: 45, type: 'Jie' },
+  { name: 'Xiaoman', chineseName: '小满', meaning: 'Grain Full', degree: 60, type: 'Zhongqi' },
+  { name: 'Mangzhong', chineseName: '芒种', meaning: 'Grain in Ear', degree: 75, type: 'Jie' },
+  { name: 'Xiazhi', chineseName: '夏至', meaning: 'Summer Solstice', degree: 90, type: 'Zhongqi' },
+  { name: 'Xiaoshu', chineseName: '小暑', meaning: 'Slight Heat', degree: 105, type: 'Jie' },
+  { name: 'Dashu', chineseName: '大暑', meaning: 'Great Heat', degree: 120, type: 'Zhongqi' },
+  { name: 'Liqiu', chineseName: '立秋', meaning: 'Beginning of Autumn', degree: 135, type: 'Jie' },
+  { name: 'Chushu', chineseName: '处暑', meaning: 'Limit of Heat', degree: 150, type: 'Zhongqi' },
+  { name: 'Bailu', chineseName: '白露', meaning: 'White Dew', degree: 165, type: 'Jie' },
+  { name: 'Qiufen', chineseName: '秋分', meaning: 'Autumn Equinox', degree: 180, type: 'Zhongqi' },
+  { name: 'Hanlu', chineseName: '寒露', meaning: 'Cold Dew', degree: 195, type: 'Jie' },
+  { name: 'Shuangjiang', chineseName: '霜降', meaning: 'Frost Descent', degree: 210, type: 'Zhongqi' },
+  { name: 'Lidong', chineseName: '立冬', meaning: 'Beginning of Winter', degree: 225, type: 'Jie' },
+  { name: 'Xiaoxue', chineseName: '小雪', meaning: 'Slight Snow', degree: 240, type: 'Zhongqi' },
+  { name: 'Daxue', chineseName: '大雪', meaning: 'Great Snow', degree: 255, type: 'Jie' },
+  { name: 'Dongzhi', chineseName: '冬至', meaning: 'Winter Solstice', degree: 270, type: 'Zhongqi' },
+  { name: 'Xiaohan', chineseName: '小寒', meaning: 'Slight Cold', degree: 285, type: 'Jie' },
+  { name: 'Dahan', chineseName: '大寒', meaning: 'Great Cold', degree: 300, type: 'Zhongqi' }
 ];
 
 export const SOLAR_TERM_MONTHS = [
-  { term: 'Lìchūn', month: 1, branch: '寅' },
-  { term: 'Jīngzhé', month: 2, branch: '卯' },
-  { term: 'Qīngmíng', month: 3, branch: '辰' },
-  { term: 'Lìxià', month: 4, branch: '巳' },
-  { term: 'Mángzhòng', month: 5, branch: '午' },
-  { term: 'Xiǎoshǔ', month: 6, branch: '未' },
-  { term: 'Lìqiū', month: 7, branch: '申' },
-  { term: 'Báilù', month: 8, branch: '酉' },
-  { term: 'Hánlù', month: 9, branch: '戌' },
-  { term: 'Lìdōng', month: 10, branch: '亥' },
-  { term: 'Dàxuě', month: 11, branch: '子' },
-  { term: 'Xiǎohán', month: 12, branch: '丑' }
+  { term: 'Lichun', month: 1, branch: '寅' },
+  { term: 'Jingzhe', month: 2, branch: '卯' },
+  { term: 'Qingming', month: 3, branch: '辰' },
+  { term: 'Lixia', month: 4, branch: '巳' },
+  { term: 'Mangzhong', month: 5, branch: '午' },
+  { term: 'Xiaoshu', month: 6, branch: '未' },
+  { term: 'Liqiu', month: 7, branch: '申' },
+  { term: 'Bailu', month: 8, branch: '酉' },
+  { term: 'Hanlu', month: 9, branch: '戌' },
+  { term: 'Lidong', month: 10, branch: '亥' },
+  { term: 'Daxue', month: 11, branch: '子' },
+  { term: 'Xiaohan', month: 12, branch: '丑' }
 ];
 
 export const INTERACTIONS = {
@@ -269,7 +269,7 @@ export const INTERACTIONS = {
       { 
         branches: ['丑', '未', '戌'], 
         chinese: '无恩之刑',
-        pinyin: 'Wú-rēn-zhī-Xíng',
+        pinyin: 'Wú-ēn-zhī-Xíng',
         result: 'Ungrateful penalty',
         strength: 'Strong'
       }
@@ -287,29 +287,29 @@ export const INTERACTIONS = {
 };
 
 const FIVE_TIGERS_RULE = {
-  '甲': { stem: '丙', chinese: '甲己之年丙作首', pinyin: 'Jiǎ-Jǐ zhī nián Bǐng zuò shǒu', translation: 'In Jia or Ji years, Bing starts the months' },
-  '己': { stem: '丙', chinese: '甲己之年丙作首', pinyin: 'Jiǎ-Jǐ zhī nián Bǐng zuò shǒu', translation: 'In Jia or Ji years, Bing starts the months' },
-  '乙': { stem: '戊', chinese: '乙庚之年戊为头', pinyin: 'Yǐ-Gēng zhī nián Wù wéi tóu', translation: 'In Yi or Geng years, Wu leads the months' },
-  '庚': { stem: '戊', chinese: '乙庚之年戊为头', pinyin: 'Yǐ-Gēng zhī nián Wù wéi tóu', translation: 'In Yi or Geng years, Wu leads the months' },
-  '丙': { stem: '庚', chinese: '丙辛必定寻庚起', pinyin: 'Bǐng-Xīn bìdìng xún Gēng qǐ', translation: 'In Bing or Xin years, seek Geng to start' },
-  '辛': { stem: '庚', chinese: '丙辛必定寻庚起', pinyin: 'Bǐng-Xīn bìdìng xún Gēng qǐ', translation: 'In Bing or Xin years, seek Geng to start' },
-  '丁': { stem: '壬', chinese: '丁壬壬位顺流行', pinyin: 'Dīng-Rén Rén wèi shùn liúxíng', translation: 'In Ding or Ren years, Ren flows in order' },
-  '壬': { stem: '壬', chinese: '丁壬壬位顺流行', pinyin: 'Dīng-Rén Rén wèi shùn liúxíng', translation: 'In Ding or Ren years, Ren flows in order' },
-  '戊': { stem: '甲', chinese: '戊癸之年甲好求', pinyin: 'Wù-Guǐ zhī nián Jiǎ hǎo qiú', translation: 'In Wu or Gui years, Jia is easily found' },
-  '癸': { stem: '甲', chinese: '戊癸之年甲好求', pinyin: 'Wù-Guǐ zhī nián Jiǎ hǎo qiú', translation: 'In Wu or Gui years, Jia is easily found' }
+  '甲': '丙',
+  '己': '丙',
+  '乙': '戊',
+  '庚': '戊',
+  '丙': '庚',
+  '辛': '庚',
+  '丁': '壬',
+  '壬': '壬',
+  '戊': '甲',
+  '癸': '甲'
 };
 
 const FIVE_RATS_RULE = {
-  '甲': { stem: '甲', chinese: '甲己还生甲', pinyin: 'Jiǎ-Jǐ hái shēng Jiǎ', translation: 'Jia or Ji day starts with Jia' },
-  '己': { stem: '甲', chinese: '甲己还生甲', pinyin: 'Jiǎ-Jǐ hái shēng Jiǎ', translation: 'Jia or Ji day starts with Jia' },
-  '乙': { stem: '丙', chinese: '乙庚丙作初', pinyin: 'Yǐ-Gēng Bǐng zuò chū', translation: 'Yi or Geng day begins with Bing' },
-  '庚': { stem: '丙', chinese: '乙庚丙作初', pinyin: 'Yǐ-Gēng Bǐng zuò chū', translation: 'Yi or Geng day begins with Bing' },
-  '丙': { stem: '戊', chinese: '丙辛从戊起', pinyin: 'Bǐng-Xīn cóng Wù qǐ', translation: 'Bing or Xin day starts from Wu' },
-  '辛': { stem: '戊', chinese: '丙辛从戊起', pinyin: 'Bǐng-Xīn cóng Wù qǐ', translation: 'Bing or Xin day starts from Wu' },
-  '丁': { stem: '庚', chinese: '丁壬庚子属', pinyin: 'Dīng-Rén Gēng Zǐ shǔ', translation: 'Ding or Ren day belongs to Geng' },
-  '壬': { stem: '庚', chinese: '丁壬庚子属', pinyin: 'Dīng-Rén Gēng Zǐ shǔ', translation: 'Ding or Ren day belongs to Geng' },
-  '戊': { stem: '壬', chinese: '戊癸何方发', pinyin: 'Wù-Guǐ hé fāng fā', translation: 'Wu or Gui day starts from Ren' },
-  '癸': { stem: '壬', chinese: '戊癸何方发', pinyin: 'Wù-Guǐ hé fāng fā', translation: 'Wu or Gui day starts from Ren' }
+  '甲': '甲',
+  '己': '甲',
+  '乙': '丙',
+  '庚': '丙',
+  '丙': '戊',
+  '辛': '戊',
+  '丁': '庚',
+  '壬': '庚',
+  '戊': '壬',
+  '癸': '壬'
 };
 
 // Core calculation functions
@@ -434,7 +434,7 @@ export function calculateMonthPillar(birthDate, yearPillar, location) {
   
   // Find which solar term month we're in
   const solarTermDates = SOLAR_TERMS
-    .filter(term => term.type === 'Jié')
+    .filter(term => term.type === 'Jie')
     .map(term => ({
       term: term.name,
       date: calculateSolarTerm(year, term.degree)
@@ -442,7 +442,7 @@ export function calculateMonthPillar(birthDate, yearPillar, location) {
   
   // Add next year's Lichun to handle year boundary
   solarTermDates.push({
-    term: 'Lìchūn',
+    term: 'Lichun',
     date: calculateSolarTerm(year + 1, 315)
   });
   
@@ -467,7 +467,8 @@ export function calculateMonthPillar(birthDate, yearPillar, location) {
   
   // Calculate month stem based on year stem
   const yearStem = yearPillar.stem.chinese;
-  const firstMonthStem = HEAVENLY_STEMS.find(stem => stem.chinese === FIVE_TIGERS_RULE[yearStem].stem);
+  const firstMonthStemChinese = FIVE_TIGERS_RULE[yearStem];
+  const firstMonthStem = HEAVENLY_STEMS.find(stem => stem.chinese === firstMonthStemChinese);
   
   if (!firstMonthStem) {
     throw new Error(`No first month stem found for year stem ${yearStem}`);
@@ -550,7 +551,8 @@ export function calculateHourPillar(birthDate, dayPillar, location) {
   
   // Calculate hour stem based on day stem
   const dayStem = dayPillar.stem.chinese;
-  const ziHourStem = HEAVENLY_STEMS.find(stem => stem.chinese === FIVE_RATS_RULE[dayStem].stem);
+  const ziHourStemChinese = FIVE_RATS_RULE[dayStem];
+  const ziHourStem = HEAVENLY_STEMS.find(stem => stem.chinese === ziHourStemChinese);
   
   if (!ziHourStem) {
     throw new Error(`No Zi hour stem found for day stem ${dayStem}`);
@@ -630,7 +632,7 @@ export function findNextJieTerm(birthDate, location, isForward) {
   // Previous year terms
   for (let y = year - 1; y <= year + 1; y++) {
     SOLAR_TERMS
-      .filter(term => term.type === 'Jié')
+      .filter(term => term.type === 'Jie')
       .forEach(term => {
         jieTerms.push({
           name: term.name,
