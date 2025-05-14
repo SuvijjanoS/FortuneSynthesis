@@ -3,38 +3,283 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Astro Calculator</title>
+  <title>BaZi Calculator - Corrected</title>
   <style>
-    .error { color: #f44336; background: #ffebee; padding: 15px; border-radius: 4px; margin: 15px 0; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 1em; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background: #f5f5f5; }
-    .hidden-stems { font-size: 0.9em; color: #555; }
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .container {
+      background: #f9f9f9;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    
+    .input-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .input-section label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    
+    .input-section input,
+    .input-section select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    
+    #calculate-btn {
+      background: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    #calculate-btn:hover {
+      background: #45a049;
+    }
+    
+    .error {
+      color: #f44336;
+      background: #ffebee;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 15px 0;
+    }
+    
+    #results-section {
+      margin-top: 30px;
+    }
+    
+    /* BaZi Chart Styles */
+    .bazi-table,
+    .luck-pillars-table {
+      border-collapse: collapse;
+      margin: 20px 0;
+      width: 100%;
+    }
+    
+    .bazi-table th,
+    .bazi-table td,
+    .luck-pillars-table th,
+    .luck-pillars-table td {
+      border: 2px solid #333;
+      padding: 10px;
+      text-align: center;
+      min-width: 100px;
+    }
+    
+    .bazi-table th,
+    .luck-pillars-table th {
+      background: #f5f5f5;
+      font-weight: bold;
+    }
+    
+    /* Element-based coloring */
+    .yang-water {
+      background: #add8e6;
+      color: #00008b;
+      font-weight: bold;
+    }
+    
+    .yin-water {
+      background: #add8e6;
+      color: #00008b;
+    }
+    
+    .yang-wood {
+      background: #90ee90;
+      color: #006400;
+      font-weight: bold;
+    }
+    
+    .yin-wood {
+      background: #90ee90;
+      color: #006400;
+    }
+    
+    .yang-fire {
+      background: #ffcccc;
+      color: #8b0000;
+      font-weight: bold;
+    }
+    
+    .yin-fire {
+      background: #ffcccc;
+      color: #8b0000;
+    }
+    
+    .yang-earth {
+      background: #f5deb3;
+      color: #8b4513;
+      font-weight: bold;
+    }
+    
+    .yin-earth {
+      background: #f5deb3;
+      color: #8b4513;
+    }
+    
+    .yang-metal {
+      background: #d3d3d3;
+      color: #2f4f4f;
+      font-weight: bold;
+    }
+    
+    .yin-metal {
+      background: #d3d3d3;
+      color: #2f4f4f;
+    }
+    
+    /* Hidden stems cells stay white */
+    .hidden-stems-cell {
+      background: white !important;
+    }
+    
+    .chinese-char {
+      font-size: 24px;
+      display: block;
+      margin-bottom: 5px;
+    }
+    
+    .pinyin {
+      font-style: italic;
+      display: block;
+      margin-bottom: 3px;
+    }
+    
+    .animal {
+      display: block;
+      margin-bottom: 3px;
+    }
+    
+    .element-info {
+      font-size: 12px;
+      display: block;
+    }
+    
+    /* Interactions section */
+    .interactions {
+      margin: 20px 0;
+    }
+    
+    .interactions h3 {
+      margin-top: 15px;
+    }
+    
+    .interaction-item {
+      background: #f0f0f0;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 4px;
+    }
+    
+    .combination {
+      background: #e8f5e9;
+    }
+    
+    .clash {
+      background: #ffebee;
+    }
+    
+    .harm {
+      background: #fff8e1;
+    }
+    
+    .penalty {
+      background: #f3e5f5;
+    }
+    
+    .destruction {
+      background: #fce4ec;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Astrology Calculator</h1>
+    <h1>BaZi Calculator</h1>
+    
     <div class="input-section">
-      <label for="birth-date">Birth Date</label>
-      <input type="date" id="birth-date" value="1983-11-11" required>
-      <label for="birth-time">Birth Time</label>
-      <input type="time" id="birth-time" value="16:23" required>
-      <label for="gender">Gender</label>
-      <select id="gender" required>
-        <option value="male" selected>Male</option>
-        <option value="female">Female</option>
-      </select>
-      <input type="hidden" id="longitude" value="100.29">
-      <input type="hidden" id="timezone" value="7">
+      <div>
+        <label for="birth-date">Birth Date</label>
+        <input type="date" id="birth-date" value="1983-11-11" required>
+      </div>
+      
+      <div>
+        <label for="birth-time">Birth Time</label>
+        <input type="time" id="birth-time" value="16:23" required>
+      </div>
+      
+      <div>
+        <label for="gender">Gender</label>
+        <select id="gender" required>
+          <option value="male" selected>Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+      
+      <div>
+        <label for="birth-location">Birth Location</label>
+        <input type="text" id="birth-location" placeholder="Beijing (default if empty)">
+      </div>
+      
+      <div>
+        <label for="longitude">Longitude</label>
+        <input type="number" id="longitude" step="0.01" placeholder="116.4 (Beijing default)">
+      </div>
+      
+      <div>
+        <label for="timezone">Timezone (hours)</label>
+        <input type="number" id="timezone" value="8" placeholder="8 (Beijing default)">
+      </div>
+      
+      <div>
+        <label for="daylight-saving">Daylight Saving Time</label>
+        <select id="daylight-saving">
+          <option value="no" selected>No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
     </div>
-    <button id="calculate-btn">Run Calculations</button>
+    
+    <button id="calculate-btn">Calculate BaZi Chart</button>
+    
     <div id="error-message" class="error" style="display:none;"></div>
-    <section id="results-section" style="display:none;"></section>
+    
+    <section id="results-section" style="display:none;">
+      <h2>BaZi Natal Chart</h2>
+      <div id="natal-chart"></div>
+      
+      <h2>Luck Pillars (12 Periods)</h2>
+      <div id="luck-pillars"></div>
+      
+      <h2>Interactions</h2>
+      <div id="interactions"></div>
+    </section>
   </div>
 
   <script type="module">
-    import { calculateBaziChart } from './bazi.js';
+    import { calculateBaziChart } from './bazi-enhanced.js';
+    
+    const defaultLocation = {
+      name: 'Beijing',
+      longitude: 116.4,
+      timezone: 8
+    };
 
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('calculate-btn').addEventListener('click', () => {
@@ -44,27 +289,36 @@
         const dateInput = document.getElementById('birth-date').value;
         const timeInput = document.getElementById('birth-time').value;
         const gender = document.getElementById('gender').value;
-        const longitude = parseFloat(document.getElementById('longitude').value);
-        // timezone needs to be in minutes for calculateLocalSolarTime
-        const timezoneHours = parseInt(document.getElementById('timezone').value, 10);
-        const timezone = timezoneHours * 60;
+        const locationName = document.getElementById('birth-location').value || defaultLocation.name;
+        const longitude = parseFloat(document.getElementById('longitude').value) || defaultLocation.longitude;
+        const timezoneHours = parseInt(document.getElementById('timezone').value) || defaultLocation.timezone;
+        const isDST = document.getElementById('daylight-saving').value === 'yes';
 
         if (!dateInput || !timeInput) {
           showError('Please enter both birth date and time.');
           return;
         }
+
         const [year, month, day] = dateInput.split('-').map(Number);
         const [hour, minute] = timeInput.split(':').map(Number);
-        const birthDate = new Date(Date.UTC(year, month - 1, day, hour - timezoneHours, minute));
+        
+        // Adjust for DST if necessary
+        const adjustedHour = isDST ? hour - 1 : hour;
+        const birthDate = new Date(year, month - 1, day, adjustedHour, minute);
+
+        const location = {
+          longitude: longitude,
+          timezone: timezoneHours * 60 // Convert to minutes
+        };
 
         let chart;
         try {
-          chart = calculateBaziChart(birthDate, { longitude, timezone }, gender);
+          chart = calculateBaziChart(birthDate, location, gender);
+          displayResults(chart);
+          document.getElementById('results-section').style.display = 'block';
         } catch (e) {
           showError(e.message);
-          return;
         }
-        displayResults(chart);
       });
     });
 
@@ -74,83 +328,234 @@
       err.textContent = msg;
     }
 
-    function renderHidden(stems) {
-      return `<div class="hidden-stems">Hidden Stems: ${stems.map(s=>`${s.chinese}(${s.pinyin})`).join(', ')}</div>`;
+    function getElementClass(element) {
+      if (!element) return '';
+      
+      const elementName = element.toLowerCase().replace(/yang |yin /g, '');
+      const isYang = element.toLowerCase().includes('yang');
+      
+      return `${isYang ? 'yang' : 'yin'}-${elementName}`;
+    }
+
+    function formatPillarContent(stem, branch) {
+      const stemClass = getElementClass(stem.element);
+      const branchClass = getElementClass(branch.element);
+      
+      return {
+        stem: `<div class="${stemClass}">
+                <span class="chinese-char">${stem.chinese}</span>
+                <span class="pinyin">${stem.pinyin}</span>
+                <span class="element-info">${stem.element}</span>
+              </div>`,
+        branch: `<div class="${branchClass}">
+                  <span class="chinese-char">${branch.chinese}</span>
+                  <span class="pinyin">${branch.pinyin}</span>
+                  <span class="animal">${branch.animal}</span>
+                  <span class="element-info">${branch.element}</span>
+                </div>`,
+        hiddenStems: branch.hiddenStems ? branch.hiddenStems.map(hs => {
+          const hsClass = getElementClass(hs.element);
+          return `<span class="${hsClass}">${hs.chinese} (${hs.pinyin})</span>`;
+        }).join('<br>') : ''
+      };
     }
 
     function displayResults(chart) {
-      const section = document.getElementById('results-section');
-      section.style.display = 'block';
+      // Display natal chart
+      const natalDiv = document.getElementById('natal-chart');
+      let natalHtml = '<table class="bazi-table">';
+      
+      // Header row
+      natalHtml += '<tr><th></th><th>Hour Pillar</th><th>Day Pillar</th><th>Month Pillar</th><th>Year Pillar</th></tr>';
+      
+      // Heavenly Stems row
+      const hourContent = formatPillarContent(chart.hourPillar.stem, chart.hourPillar.branch);
+      const dayContent = formatPillarContent(chart.dayPillar.stem, chart.dayPillar.branch);
+      const monthContent = formatPillarContent(chart.monthPillar.stem, chart.monthPillar.branch);
+      const yearContent = formatPillarContent(chart.yearPillar.stem, chart.yearPillar.branch);
+      
+      natalHtml += '<tr>';
+      natalHtml += '<th>Heavenly Stem</th>';
+      natalHtml += `<td>${hourContent.stem}</td>`;
+      natalHtml += `<td>${dayContent.stem}</td>`;
+      natalHtml += `<td>${monthContent.stem}</td>`;
+      natalHtml += `<td>${yearContent.stem}</td>`;
+      natalHtml += '</tr>';
+      
+      // Earthly Branches row
+      natalHtml += '<tr>';
+      natalHtml += '<th>Earthly Branch</th>';
+      natalHtml += `<td>${hourContent.branch}</td>`;
+      natalHtml += `<td>${dayContent.branch}</td>`;
+      natalHtml += `<td>${monthContent.branch}</td>`;
+      natalHtml += `<td>${yearContent.branch}</td>`;
+      natalHtml += '</tr>';
+      
+      // Hidden Stems row
+      natalHtml += '<tr>';
+      natalHtml += '<th>Hidden Stems</th>';
+      natalHtml += `<td class="hidden-stems-cell">${hourContent.hiddenStems}</td>`;
+      natalHtml += `<td class="hidden-stems-cell">${dayContent.hiddenStems}</td>`;
+      natalHtml += `<td class="hidden-stems-cell">${monthContent.hiddenStems}</td>`;
+      natalHtml += `<td class="hidden-stems-cell">${yearContent.hiddenStems}</td>`;
+      natalHtml += '</tr>';
+      
+      natalHtml += '</table>';
+      natalDiv.innerHTML = natalHtml;
+      
+      // Display luck pillars (12 periods)
+      const luckDiv = document.getElementById('luck-pillars');
+      let luckHtml = '<table class="luck-pillars-table">';
+      
+      // Header row with age ranges
+      luckHtml += '<tr><th></th>';
+      chart.luckPillars.slice(0, 12).forEach(lp => {
+        const startYear = chart.birthDate.getFullYear() + lp.startAge;
+        const endYear = chart.birthDate.getFullYear() + lp.endAge;
+        luckHtml += `<th>Age ${lp.startAge}-${lp.endAge}<br>(${startYear}-${endYear})</th>`;
+      });
+      luckHtml += '</tr>';
+      
+      // Heavenly Stems row
+      luckHtml += '<tr><th>Heavenly Stem</th>';
+      chart.luckPillars.slice(0, 12).forEach(lp => {
+        const content = formatPillarContent(lp.stem, lp.branch);
+        luckHtml += `<td>${content.stem}</td>`;
+      });
+      luckHtml += '</tr>';
+      
+      // Earthly Branches row
+      luckHtml += '<tr><th>Earthly Branch</th>';
+      chart.luckPillars.slice(0, 12).forEach(lp => {
+        const content = formatPillarContent(lp.stem, lp.branch);
+        luckHtml += `<td>${content.branch}</td>`;
+      });
+      luckHtml += '</tr>';
+      
+      // Hidden Stems row
+      luckHtml += '<tr><th>Hidden Stems</th>';
+      chart.luckPillars.slice(0, 12).forEach(lp => {
+        const content = formatPillarContent(lp.stem, lp.branch);
+        luckHtml += `<td class="hidden-stems-cell">${content.hiddenStems}</td>`;
+      });
+      luckHtml += '</tr>';
+      
+      // Combinations and Clashes rows (to be implemented based on interactions)
+      // This would require analyzing interactions between luck pillars and natal chart
+      
+      luckHtml += '</table>';
+      luckDiv.innerHTML = luckHtml;
+      
+      // Display interactions
+      displayInteractions(chart.interactions);
+    }
+    
+    function displayInteractions(interactions) {
+      const container = document.getElementById('interactions');
       let html = '';
-
-      // Birth Chart
-      html += '<h2>Birth Chart</h2>';
-      html += '<table><thead><tr><th>Pillar</th><th>Stem</th><th>Branch</th><th>Element</th></tr></thead><tbody>';
-      ['yearPillar','monthPillar','dayPillar','hourPillar'].forEach(key => {
-        const p = chart[key];
-        html += `<tr>` +
-                `<td>${key.replace('Pillar','')}</td>` +
-                `<td>${p.stem.chinese} (${p.stem.pinyin})</td>` +
-                `<td>${p.branch.chinese} (${p.branch.pinyin}) ${p.branch.animal}${renderHidden(p.branch.hiddenStems)}</td>` +
-                `<td>${p.branch.element}</td>` +
-                `</tr>`;
-      });
-      html += '</tbody></table>';
-
-      // Luck Pillars (12 pillars)
-      html += '<h2>Luck Pillars (12)</h2>';
-      html += '<table><thead><tr><th>Period</th><th>Stem</th><th>Branch</th><th>Element</th></tr></thead><tbody>';
-      chart.luckPillars.slice(0,12).forEach(lp => {
-        html += `<tr>` +
-                `<td>${lp.startAge}-${lp.endAge}</td>` +
-                `<td>${lp.stem.chinese} (${lp.stem.pinyin})</td>` +
-                `<td>${lp.branch.chinese} (${lp.branch.pinyin})${renderHidden(lp.branch.hiddenStems)}</td>` +
-                `<td>${lp.branch.element}</td>` +
-                `</tr>`;
-      });
-      html += '</tbody></table>';
-
-      // Six Combinations
-      html += '<h2>Six Combinations</h2>';
-      html += '<table><thead><tr><th>Branches</th><th>Result Element</th><th>Pinyin</th></tr></thead><tbody>';
-      chart.interactions.combinations.forEach(c => {
-        html += `<tr>` +
-                `<td>${c.branches.join(', ')}</td>` +
-                `<td>${c.result}</td>` +
-                `<td>${c.branches.map(b => {
-                   const br = chart.yearPillar.branch.chinese===b ? chart.yearPillar.branch :
-                             chart.monthPillar.branch.chinese===b ? chart.monthPillar.branch :
-                             chart.dayPillar.branch.chinese===b ? chart.dayPillar.branch :
-                             chart.hourPillar.branch.chinese===b ? chart.hourPillar.branch : null;
-                   return br ? br.pinyin : '';
-                 }).join(', ')}</td>` +
-                `</tr>`;
-      });
-      html += '</tbody></table>';
-
-      // Six Clashes
-      html += '<h2>Six Clashes</h2>';
-      html += '<table><thead><tr><th>Branches</th><th>Pinyin</th><th>Element</th></tr></thead><tbody>';
-      chart.interactions.clashes.forEach(c => {
-        const [b1,b2] = c.branches;
-        const el1 = c.branches.map(b=> {
-          const br = [chart.yearPillar,chart.monthPillar,chart.dayPillar,chart.hourPillar]
-            .map(p=>p.branch).find(br=>br.chinese===b);
-          return br ? br.element : '';
+      
+      // Combinations
+      if (interactions.combinations.length > 0) {
+        html += '<h3>Six Combinations (六合 - Liùhé)</h3>';
+        interactions.combinations.forEach(combo => {
+          html += `<div class="interaction-item combination">
+                    <strong>${combo.branches.join(' + ')}</strong> → ${combo.result}<br>
+                    <span>${combo.branches.map(b => getPinyinForBranch(b)).join(' + ')}</span>
+                  </div>`;
         });
-        const pin = c.branches.map(b=> {
-          const br = [chart.yearPillar,chart.monthPillar,chart.dayPillar,chart.hourPillar]
-            .map(p=>p.branch).find(br=>br.chinese===b);
-          return br ? br.pinyin : '';
+      }
+      
+      // Three Harmonies
+      if (interactions.threeHarmonies.length > 0) {
+        html += '<h3>Three Harmonies (三合 - Sānhé)</h3>';
+        interactions.threeHarmonies.forEach(harmony => {
+          const status = harmony.complete ? 'Complete' : 'Partial';
+          html += `<div class="interaction-item combination">
+                    <strong>${harmony.branches.join(' + ')}</strong> → ${harmony.result} (${status})<br>
+                    <span>${harmony.branches.map(b => getPinyinForBranch(b)).join(' + ')}</span>
+                  </div>`;
         });
-        html += `<tr>` +
-                `<td>${b1}, ${b2}</td>` +
-                `<td>${pin.join(', ')}</td>` +
-                `<td>${el1.join(', ')}</td>` +
-                `</tr>`;
-      });
-      html += '</tbody></table>';
-
-      section.innerHTML = html;
+      }
+      
+      // Clashes
+      if (interactions.clashes.length > 0) {
+        html += '<h3>Six Clashes (六冲 - Liùchōng)</h3>';
+        interactions.clashes.forEach(clash => {
+          const elements = clash.branches.map(b => getElementForBranch(b));
+          html += `<div class="interaction-item clash">
+                    <strong>${clash.branches.join(' ↔ ')}</strong><br>
+                    <span>${clash.branches.map(b => getPinyinForBranch(b)).join(' ↔ ')}</span><br>
+                    Elements: ${elements.join(' clashes with ')}
+                  </div>`;
+        });
+      }
+      
+      // Harms
+      if (interactions.harms.length > 0) {
+        html += '<h3>Six Harms (六害 - Liùhài)</h3>';
+        interactions.harms.forEach(harm => {
+          html += `<div class="interaction-item harm">
+                    <strong>${harm.branches.join(' × ')}</strong><br>
+                    <span>${harm.branches.map(b => getPinyinForBranch(b)).join(' × ')}</span>
+                  </div>`;
+        });
+      }
+      
+      // Penalties
+      if (interactions.penalties.length > 0) {
+        html += '<h3>Penalties (刑 - Xíng)</h3>';
+        interactions.penalties.forEach(penalty => {
+          if (penalty.type === 'SelfPenalty') {
+            html += `<div class="interaction-item penalty">
+                      Self-penalty: <strong>${penalty.branch}</strong><br>
+                      <span>${getPinyinForBranch(penalty.branch)}</span>
+                    </div>`;
+          } else if (penalty.type === 'UncivilizedPenalty') {
+            html += `<div class="interaction-item penalty">
+                      Uncivilized penalty: <strong>${penalty.branches.join(' + ')}</strong><br>
+                      <span>${penalty.branches.map(b => getPinyinForBranch(b)).join(' + ')}</span>
+                    </div>`;
+          } else if (penalty.type === 'ThreeWayPenalty') {
+            html += `<div class="interaction-item penalty">
+                      Three-way penalty: <strong>${penalty.presentBranches.join(' + ')}</strong><br>
+                      <span>${penalty.presentBranches.map(b => getPinyinForBranch(b)).join(' + ')}</span>
+                    </div>`;
+          }
+        });
+      }
+      
+      // Destructions
+      if (interactions.destructions.length > 0) {
+        html += '<h3>Destructions (破 - Pò)</h3>';
+        interactions.destructions.forEach(destruction => {
+          html += `<div class="interaction-item destruction">
+                    <strong>${destruction.branches.join(' ⚡ ')}</strong><br>
+                    <span>${destruction.branches.map(b => getPinyinForBranch(b)).join(' ⚡ ')}</span>
+                  </div>`;
+        });
+      }
+      
+      container.innerHTML = html;
+    }
+    
+    // Helper functions to get pinyin and element for branches
+    function getPinyinForBranch(branchChinese) {
+      const branchMap = {
+        '子': 'Zǐ', '丑': 'Chǒu', '寅': 'Yín', '卯': 'Mǎo',
+        '辰': 'Chén', '巳': 'Sì', '午': 'Wǔ', '未': 'Wèi',
+        '申': 'Shēn', '酉': 'Yǒu', '戌': 'Xū', '亥': 'Hài'
+      };
+      return branchMap[branchChinese] || branchChinese;
+    }
+    
+    function getElementForBranch(branchChinese) {
+      const elementMap = {
+        '子': 'Water', '丑': 'Earth', '寅': 'Wood', '卯': 'Wood',
+        '辰': 'Earth', '巳': 'Fire', '午': 'Fire', '未': 'Earth',
+        '申': 'Metal', '酉': 'Metal', '戌': 'Earth', '亥': 'Water'
+      };
+      return elementMap[branchChinese] || 'Unknown';
     }
   </script>
+</body>
+</html>
