@@ -1,0 +1,28 @@
+name: Fetch WanNianLi
+on: workflow_dispatch          # manual “Run workflow” button
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download HKO CSVs 1901-2100
+      run: |
+        mkdir -p data/hko
+        for y in $(seq 1901 2100); do
+          curl -sSL -o data/hko/$y.csv \
+          "https://data.weather.gov.hk/weatherAPI/hko_data/calendar/nongli_calendar_${y}.csv"
+        done
+
+  
+
+    - name: Commit & push
+      run: |
+        git config user.name  "fetch-bot"
+        git config user.email "bot@example.com"
+        git add data
+        git commit -m "Add WanNianLi CSVs" || echo "Nothing to commit"
+        git push
