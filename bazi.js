@@ -269,7 +269,7 @@ export const INTERACTIONS = {
       { 
         branches: ['丑', '未', '戌'], 
         chinese: '无恩之刑',
-        pinyin: 'Wú'ēn-zhī-Xíng',
+        pinyin: 'Wú-rēn-zhī-Xíng',
         result: 'Ungrateful penalty',
         strength: 'Strong'
       }
