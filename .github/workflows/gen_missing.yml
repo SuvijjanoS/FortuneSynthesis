@@ -2,103 +2,111 @@ name: Generate missing WanNianLi years
 on: workflow_dispatch
 
 permissions:
-  contents: write
+  contents: write          # lets the job push to main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      # — 0.  checkout repo —
+      - uses: actions/checkout@v4
 
-    - name: Install build tools
-      run: |
-        sudo apt-get update -y
-        sudo apt-get install -y build-essential jq curl
+      # — 1.  basic build tools —
+      - name: Install build tools
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y build-essential jq curl
 
-    # 1️⃣  clone & build
-    - name: Build ccalendar
-      run: |
-      git clone --depth 1 https://github.com/liweitianux/ccalendar.git
-      make -C ccalendar          # binary is now  ccalendar/ccalendar
-      chmod +x ccalendar/ccalendar
-      echo "CC_BIN=$(pwd)/ccalendar/ccalendar" >> "$GITHUB_ENV"
+      # — 2.  clone + build ccalendar —
+      - name: Build ccalendar
+        run: |
+          git clone --depth 1 https://github.com/liweitianux/ccalendar.git
+          make -C ccalendar                   # binary -> ccalendar/ccalendar
+          chmod +x ccalendar/ccalendar
+          echo "CC_BIN=${GITHUB_WORKSPACE}/ccalendar/ccalendar" >> $GITHUB_ENV
 
-    # 2️⃣  generate gap years JSON
-    - name: Generate gap JSON (1800-1899, 2101-2300)
-      env:
-        CC_BIN: ${{ env.CC_BIN }}
-      run: |
-        mkdir -p data/gen
-        echo '[' > data/gen/gap.json
-        first=1
-        for y in $(seq 1800 1899) $(seq 2101 2300); do
-          for d in $(seq 0 365); do
-            gdate=$(date -d "$y-01-01 +$d day" +%F 2>/dev/null) || break
-            row=$($CC_BIN --gregorian "$gdate" --output json)
-            [ $first -eq 1 ] && first=0 || echo ',' >> data/gen/gap.json
-            echo "$row" >> data/gen/gap.json
-    done
-  done
-  echo ']' >> data/gen/gap.json
+      # — 3.  generate GAP JSON (1800-1899 & 2101-2300) —
+      - name: Generate gap JSON
+        env:
+          CC_BIN: ${{ env.CC_BIN }}
+        run: |
+          mkdir -p data/gen
+          echo '[' > data/gen/gap.json
+          first=1
+          for y in $(seq 1800 1899) $(seq 2101 2300); do
+            for d in $(seq 0 365); do
+              gdate=$(date -d "$y-01-01 +$d day" +%F 2>/dev/null) || break
+              row=$($CC_BIN --gregorian "$gdate" --output json)
+              if [ $first -eq 1 ]; then first=0; else echo ',' >> data/gen/gap.json; fi
+              echo "$row" >> data/gen/gap.json
+            done
           done
-        done
-        echo ']' >> data/gen/gap.json
+          echo ']' >> data/gen/gap.json
 
-    # 3️⃣  convert HKO + CWA CSVs to JSON (unchanged)
-    - name: Convert official CSV → JSON
-      run: |
-        node <<'NODE'
-        const fs   = require('fs');
-        const path = require('path');
-        const csv  = require('csv-parse/sync');
+      # — 4.  convert HKO + CWA CSVs already in data/ to JSON —
+      - name: Convert official CSV → JSON
+        run: |
+          node <<'NODE'
+          const fs   = require('fs');
+          const path = require('path');
+          const csv  = require('csv-parse/sync');
+          let rows = [];
 
-        let rows=[];
-        if (fs.existsSync('data/hko'))
-          fs.readdirSync('data/hko').forEach(f=>{
-            rows.push(...csv.parse(fs.readFileSync(path.join('data/hko',f),'utf8'),{columns:true}));
+          if (fs.existsSync('data/hko'))
+            fs.readdirSync('data/hko')
+              .forEach(f=>{
+                const txt = fs.readFileSync(path.join('data/hko',f),'utf8');
+                rows.push(...csv.parse(txt,{columns:true,skip_empty_lines:true}));
+              });
+
+          if (fs.existsSync('data/cwa/cwa.csv'))
+            rows.push(...csv.parse(
+              fs.readFileSync('data/cwa/cwa.csv','utf8'),
+              {columns:true,skip_empty_lines:true}
+            ));
+
+          fs.mkdirSync('data/gen',{recursive:true});
+          fs.writeFileSync('data/gen/official.json',JSON.stringify(rows));
+          NODE
+
+      # — 5.  merge GAP + OFFICIAL → master JSON —
+      - name: Merge to 1800-2300 JSON
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const gap = JSON.parse(fs.readFileSync('data/gen/gap.json'));
+          const off = JSON.parse(fs.readFileSync('data/gen/official.json'));
+
+          const map = {};
+          const norm = r => ({
+            g: r.gregorian_date || r['公曆日期'] || r.Gregorian || r['日期'],
+            y: r.lunar_year_gz  || r['農曆干支年'] || r['干支年'],
+            m: r.lunar_month    || r['農曆月']    || r.lunar_month,
+            d: r.lunar_day      || r['農曆日']    || r.lunar_day
           });
-        if (fs.existsSync('data/cwa/cwa.csv'))
-          rows.push(...csv.parse(fs.readFileSync('data/cwa/cwa.csv','utf8'),{columns:true}));
 
-        fs.mkdirSync('data/gen',{recursive:true});
-        fs.writeFileSync('data/gen/official.json',JSON.stringify(rows));
-        NODE
+          [...gap, ...off].forEach(r=>{
+            const n = norm(r);
+            if (n.g) map[n.g] = n;            // official rows override gap
+          });
 
-    # 4️⃣  merge → master JSON
-    - name: Merge to 1800-2300 JSON
-      run: |
-        node <<'NODE'
-        const fs = require('fs');
-        const gap = JSON.parse(fs.readFileSync('data/gen/gap.json'));
-        const off = JSON.parse(fs.readFileSync('data/gen/official.json'));
+          const merged = Object.values(map)
+                                .sort((a,b)=>a.g.localeCompare(b.g));
 
-        const map = {};
-        const norm = r => ({
-          g: r.gregorian_date || r['公曆日期'] || r.Gregorian || r['日期'],
-          y: r.lunar_year_gz  || r['農曆干支年'] || r['干支年'],
-          m: r.lunar_month    || r['農曆月']    || r.lunar_month,
-          d: r.lunar_day      || r['農曆日']    || r.lunar_day
-        });
+          fs.writeFileSync('data/wanianli_1800_2300.json', JSON.stringify(merged));
+          console.log('Merged days:', merged.length);
+          NODE
 
-        [...gap,...off].forEach(r=>{
-          const n=norm(r); if(n.g) map[n.g]=n;
-        });
-        const merged = Object.values(map).sort((a,b)=>a.g.localeCompare(b.g));
-        fs.writeFileSync('data/wanianli_1800_2300.json',JSON.stringify(merged));
-        console.log(`Merged days: ${merged.length}`);
-        NODE
+      # — 6.  commit + push —
+      - name: Commit merged file
+        run: |
+          git config user.name  "gap-bot"
+          git config user.email "bot@example.com"
+          git add data/wanianli_1800_2300.json
+          git commit -m "Add merged WanNianLi 1800-2300" || echo "No changes"
+          git push origin HEAD
 
-    # 5️⃣  commit
-    - name: Commit merged file
-      run: |
-        git config user.name  "gap-bot"
-        git config user.email "bot@example.com"
-        git add data/wanianli_1800_2300.json
-        git commit -m "Add merged WanNianLi 1800-2300" || echo "No changes"
-        git push origin HEAD
-
-    # 6️⃣  sanity check (optional)
-    - name: List final artefact
-      run: |
-        ls -lh data/wanianli_1800_2300.json
+      # — 7.  sanity check —
+      - name: List final artefact
+        run: ls -lh data/wanianli_1800_2300.json
