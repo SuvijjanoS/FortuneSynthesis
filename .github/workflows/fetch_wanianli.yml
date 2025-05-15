@@ -1,6 +1,9 @@
 name: Fetch WanNianLi
 on: workflow_dispatch          # manual “Run workflow” button
 
+permissions:
+  contents: write        # ← give the workflow push rights
+
 jobs:
   fetch:
     runs-on: ubuntu-latest
@@ -25,4 +28,4 @@ jobs:
         git config user.email "bot@example.com"
         git add data
         git commit -m "Add WanNianLi CSVs" || echo "Nothing to commit"
-        git push
+        git push origin HEAD:wanianli-data
