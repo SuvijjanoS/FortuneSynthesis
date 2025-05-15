@@ -19,9 +19,10 @@ jobs:
     # 1️⃣  clone & build
     - name: Build ccalendar
       run: |
-        git clone --depth 1 https://github.com/liweitianux/ccalendar.git
-        make -C ccalendar              # binary -> ccalendar/bin/ccalendar
-        echo "CC_BIN=$(pwd)/ccalendar/bin/ccalendar" >> "$GITHUB_ENV"
+      git clone --depth 1 https://github.com/liweitianux/ccalendar.git
+      make -C ccalendar          # binary is now  ccalendar/ccalendar
+      chmod +x ccalendar/ccalendar
+      echo "CC_BIN=$(pwd)/ccalendar/ccalendar" >> "$GITHUB_ENV"
 
     # 2️⃣  generate gap years JSON
     - name: Generate gap JSON (1800-1899, 2101-2300)
@@ -32,12 +33,14 @@ jobs:
         echo '[' > data/gen/gap.json
         first=1
         for y in $(seq 1800 1899) $(seq 2101 2300); do
-          # iterate every Gregorian day with GNU date
           for d in $(seq 0 365); do
             gdate=$(date -d "$y-01-01 +$d day" +%F 2>/dev/null) || break
             row=$($CC_BIN --gregorian "$gdate" --output json)
             [ $first -eq 1 ] && first=0 || echo ',' >> data/gen/gap.json
             echo "$row" >> data/gen/gap.json
+    done
+  done
+  echo ']' >> data/gen/gap.json
           done
         done
         echo ']' >> data/gen/gap.json
