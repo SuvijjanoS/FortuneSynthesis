@@ -2,9 +2,7 @@
   "name": "bazi-api",
   "version": "1.0.0",
   "type": "module",
-  "engines": {
-    "node": "18.x"
-  },
+  "engines": { "node": "16.x" },
   "scripts": {
     "prevercel-build": "mkdir -p ephe && curl -L $EPHE_PLANET_URL -o ephe/sepl_18.se1 && curl -L $EPHE_MOON_URL -o ephe/semo_18.se1",
     "vercel-build": "node vercel-build.js"
