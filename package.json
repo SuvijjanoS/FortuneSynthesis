@@ -10,7 +10,7 @@
     "vercel-build": "node vercel-build.js"
   },
   "dependencies": {
-    "swisseph": "^2.10.3",
+   
     "@supabase/supabase-js": "^2.39.0"
   }
 }
