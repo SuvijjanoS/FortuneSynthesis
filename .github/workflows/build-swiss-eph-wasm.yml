@@ -1,0 +1,46 @@
+name: Build Swiss-Eph WASM
+
+# Trigger manually when you want to rebuild, or on push to main
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (Emscripten)
+        run: |
+          # install emscripten SDK (will live in /home/runner/emsdk)
+          git clone https://github.com/emscripten-core/emsdk.git emsdk
+          cd emsdk
+          ./emsdk install latest
+          ./emsdk activate latest
+          source ./emsdk_env.sh
+
+      - name: Build Swiss-Ephemeris to WASM
+        run: |
+          cd astroeph/swiss-ephemeris/src    # adjust path if your code is elsewhere
+          emcc \
+            -std=c99 -O3 \
+            -s STANDALONE_WASM \
+            -s EXPORTED_FUNCTIONS='["_swe_julday","_swe_calc_ut","_swe_set_ephe_path"]' \
+            -s EXTRA_EXPORTED_RUNTIME_METHODS='["cwrap","ccall"]' \
+            *.c \
+            -o swe_wasm.js
+
+      - name: Move artifacts into repo
+        run: |
+          mkdir -p lib/swiss-ephem
+          mv astroeph/swiss-ephemeris/src/swe_wasm.js lib/swiss-ephem/
+          mv astroeph/swiss-ephemeris/src/swe_wasm.wasm lib/swiss-ephem/
+
+      - name: Commit & push WASM files
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "chore: update Swiss-Eph WASM build"
+          file_pattern: "lib/swiss-ephem/*"
