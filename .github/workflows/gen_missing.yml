@@ -2,111 +2,149 @@ name: Generate missing WanNianLi years
 on: workflow_dispatch
 
 permissions:
-  contents: write          # lets the job push to main
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # — 0.  checkout repo —
-      - uses: actions/checkout@v4
+    # 0 — checkout repo
+    - uses: actions/checkout@v4
 
-      # — 1.  basic build tools —
-      - name: Install build tools
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y build-essential jq curl
+    # 1 — install Python libs (all in cloud)
+    - name: Install Python deps
+      run: |
+        python -m pip install --upgrade pip
+        pip install lunardate
 
-      # — 2.  clone + build ccalendar —
-      - name: Build ccalendar
-        run: |
-          git clone --depth 1 https://github.com/liweitianux/ccalendar.git
-          make -C ccalendar                   # binary -> ccalendar/ccalendar
-          chmod +x ccalendar/calendar
-          echo "CC_BIN=${GITHUB_WORKSPACE}/ccalendar/calendar" >> $GITHUB_ENV
+    # 2 — generate GAP years JSON (1800-1899, 2101-2300)
+    - name: Generate gap JSON
+      run: |
+        python <<'PY'
+        import json, datetime, math, os, sys
+        from lunardate import LunarDate
 
-      # — 3.  generate GAP JSON (1800-1899 & 2101-2300) —
-      - name: Generate gap JSON
-        env:
-          CC_BIN: ${{ env.CC_BIN }}
-        run: |
-          mkdir -p data/gen
-          echo '[' > data/gen/gap.json
-          first=1
-          for y in $(seq 1800 1899) $(seq 2101 2300); do
-            for d in $(seq 0 365); do
-              gdate=$(date -d "$y-01-01 +$d day" +%F 2>/dev/null) || break
-              row=$($CC_BIN --gregorian "$gdate" --output json)
-              if [ $first -eq 1 ]; then first=0; else echo ',' >> data/gen/gap.json; fi
-              echo "$row" >> data/gen/gap.json
-            done
-          done
-          echo ']' >> data/gen/gap.json
+        # --- helpers ---------------------------------------------------------
+        STEMS = "甲乙丙丁戊己庚辛壬癸"
+        BRANCHES = "子丑寅卯辰巳午未申酉戌亥"
 
-      # — 4.  convert HKO + CWA CSVs already in data/ to JSON —
-      - name: Convert official CSV → JSON
-        run: |
-          node <<'NODE'
-          const fs   = require('fs');
-          const path = require('path');
-          const csv  = require('csv-parse/sync');
-          let rows = [];
+        def gz_year(year):
+            return STEMS[(year - 4) % 10] + BRANCHES[(year - 4) % 12]
 
-          if (fs.existsSync('data/hko'))
-            fs.readdirSync('data/hko')
-              .forEach(f=>{
-                const txt = fs.readFileSync(path.join('data/hko',f),'utf8');
-                rows.push(...csv.parse(txt,{columns:true,skip_empty_lines:true}));
-              });
+        #     Meeus JD (valid Gregorian 1583-9999)
+        def greg_to_jd(y, m, d):
+            if m <= 2:
+                y -= 1
+                m += 12
+            A = y // 100
+            B = 2 - A + A // 4
+            return (math.floor(365.25 * (y + 4716))
+                    + math.floor(30.6001 * (m + 1))
+                    + d + B - 1524.5)
 
-          if (fs.existsSync('data/cwa/cwa.csv'))
-            rows.push(...csv.parse(
-              fs.readFileSync('data/cwa/cwa.csv','utf8'),
-              {columns:true,skip_empty_lines:true}
-            ));
+        JD_ANCHOR = greg_to_jd(1984, 2,  2)  # 甲子日
 
-          fs.mkdirSync('data/gen',{recursive:true});
-          fs.writeFileSync('data/gen/official.json',JSON.stringify(rows));
-          NODE
+        def gz_day(y, m, d):
+            idx = int((greg_to_jd(y, m, d) - JD_ANCHOR) % 60)
+            return STEMS[idx % 10] + BRANCHES[idx % 12]
 
-      # — 5.  merge GAP + OFFICIAL → master JSON —
-      - name: Merge to 1800-2300 JSON
-        run: |
-          node <<'NODE'
-          const fs = require('fs');
-          const gap = JSON.parse(fs.readFileSync('data/gen/gap.json'));
-          const off = JSON.parse(fs.readFileSync('data/gen/official.json'));
+        out = []
+        def push(year):
+            start = datetime.date(year, 1, 1)
+            end   = datetime.date(year, 12, 31)
+            day   = datetime.timedelta(days=1)
+            cur = start
+            while cur <= end:
+                g = cur.isoformat()                       # YYYY-MM-DD
+                try:
+                    ld = LunarDate.fromSolarDate(cur.year, cur.month, cur.day)
+                    lunar_month = f"{'闰' if ld.isleap() else ''}{ld.month}"
+                    out.append({
+                        "gregorian_date": g,
+                        "lunar_year_gz" : gz_year(ld.year),
+                        "lunar_month"   : lunar_month,
+                        "lunar_day"     : ld.day,
+                        "day_ganzhi"    : gz_day(cur.year, cur.month, cur.day)
+                    })
+                except ValueError:
+                    # lunardate only valid to 2050; shouldn't happen here,
+                    # but leave guard for completeness.
+                    pass
+                cur += day
 
-          const map = {};
-          const norm = r => ({
-            g: r.gregorian_date || r['公曆日期'] || r.Gregorian || r['日期'],
-            y: r.lunar_year_gz  || r['農曆干支年'] || r['干支年'],
-            m: r.lunar_month    || r['農曆月']    || r.lunar_month,
-            d: r.lunar_day      || r['農曆日']    || r.lunar_day
-          });
+        for y in range(1800, 1900):  push(y)
+        for y in range(2101, 2301):  push(y)
 
-          [...gap, ...off].forEach(r=>{
-            const n = norm(r);
-            if (n.g) map[n.g] = n;            // official rows override gap
-          });
+        os.makedirs("data/gen", exist_ok=True)
+        with open("data/gen/gap.json", "w", encoding="utf8") as f:
+            json.dump(out, f, ensure_ascii=False)
+        print("Generated rows:", len(out))
+        PY
 
-          const merged = Object.values(map)
-                                .sort((a,b)=>a.g.localeCompare(b.g));
+    # 3 — convert HKO + CWA CSVs that are already in data/ to JSON
+    - name: Convert official CSV → JSON
+      run: |
+        python <<'PY'
+        import csv, json, os, pathlib, glob
 
-          fs.writeFileSync('data/wanianli_1800_2300.json', JSON.stringify(merged));
-          console.log('Merged days:', merged.length);
-          NODE
+        rows=[]
+        # HKO yearly CSVs
+        for fp in glob.glob("data/hko/*.csv"):
+            with open(fp, newline='', encoding='utf8') as f:
+                rows.extend(list(csv.DictReader(f)))
+        # CWA master CSV
+        if pathlib.Path("data/cwa/cwa.csv").exists():
+            with open("data/cwa/cwa.csv", newline='', encoding='utf8') as f:
+                rows.extend(list(csv.DictReader(f)))
 
-      # — 6.  commit + push —
-      - name: Commit merged file
-        run: |
-          git config user.name  "gap-bot"
-          git config user.email "bot@example.com"
-          git add data/wanianli_1800_2300.json
-          git commit -m "Add merged WanNianLi 1800-2300" || echo "No changes"
-          git push origin HEAD
+        os.makedirs("data/gen", exist_ok=True)
+        with open("data/gen/official.json","w",encoding="utf8") as f:
+            json.dump(rows,f,ensure_ascii=False)
+        print("Official rows:", len(rows))
+        PY
 
-      # — 7.  sanity check —
-      - name: List final artefact
-        run: ls -lh data/wanianli_1800_2300.json
+    # 4 — merge GAP + OFFICIAL → master JSON (normalise fields)
+    - name: Merge to 1800-2300 JSON
+      run: |
+        python <<'PY'
+        import json, os, pathlib, itertools
+
+        gap = json.load(open("data/gen/gap.json", encoding="utf8"))
+        off = json.load(open("data/gen/official.json", encoding="utf8"))
+
+        def norm(r):
+            # unify field names; many CSV headers differ
+            return {
+              "g": r.get("gregorian_date") or r.get("公曆日期") or r.get("Gregorian") or r.get("日期"),
+              "y": r.get("lunar_year_gz")  or r.get("農曆干支年") or r.get("干支年"),
+              "m": r.get("lunar_month")    or r.get("農曆月")    or r.get("lunar_month"),
+              "d": r.get("lunar_day")      or r.get("農曆日")    or r.get("lunar_day"),
+              "dg": r.get("day_ganzhi")    or r.get("day_ganzhi") # may be missing in official CSV
+            }
+
+        merged={}
+        for r in itertools.chain(gap, off):
+            n = norm(r)
+            if n["g"]:
+                merged[n["g"]] = n          # official rows override gap
+
+        out = list(sorted(merged.values(), key=lambda x: x["g"]))
+        os.makedirs("data", exist_ok=True)
+        with open("data/wanianli_1800_2300.json","w",encoding="utf8") as f:
+            json.dump(out, f, ensure_ascii=False)
+        print("Merged days:", len(out))
+        PY
+
+    # 5 — commit & push
+    - name: Commit merged file
+      run: |
+        git config user.name  "gap-bot"
+        git config user.email "bot@example.com"
+        git add data/wanianli_1800_2300.json
+        git commit -m "Add merged WanNianLi 1800-2300" || echo "No changes"
+        git push origin HEAD
+
+    # 6 — sanity check
+    - name: List final artefact
+      run: ls -lh data/wanianli_1800_2300.json
