@@ -1,4 +1,20 @@
-name: Clone & build Swiss-Eph to WASM
+name: Build Swiss-Eph WASM
+
+on:
+workflow\_dispatch:
+push:
+branches:
+\- main
+
+jobs:
+build-wasm:
+runs-on: ubuntu-latest
+steps:
+\- name: Checkout repo
+uses: actions/checkout\@v4
+
+```
+  - name: Clone & build Swiss-Eph to WASM
     run: |
       # 1. Clone Swiss Ephemeris C source
       git clone https://github.com/aloistr/swisseph.git swisseph
@@ -23,8 +39,9 @@ name: Clone & build Swiss-Eph to WASM
       mv swe_wasm.js  ../lib/swiss-ephem/
       mv swe_wasm.wasm ../lib/swiss-ephem/
 
-  name: Commit & push WASM files
+  - name: Commit & push WASM files
     uses: stefanzweifel/git-auto-commit-action@v4
     with:
       commit_message: "chore: update Swiss-Eph WASM build"
       file_pattern: "lib/swiss-ephem/*"
+```
