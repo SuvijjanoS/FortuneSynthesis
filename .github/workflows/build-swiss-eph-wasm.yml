@@ -26,21 +26,41 @@ jobs:
           source ./emsdk_env.sh
           cd ..
 
-          # 3. Build the C sources to WASM + glue
-          cd swisseph/src
+          # 3. Find all C files in the repository
+          echo "Finding C source files in swisseph:"
+          find swisseph -name "*.c" | head -20
+          
+          # Determine the correct directory with C files
+          cd swisseph
+          
+          # Check if C files are in the root
+          if [ -f "swecl.c" ]; then
+            echo "C files found in root directory"
+            C_FILES="*.c"
+          elif [ -f "src/swecl.c" ]; then
+            echo "C files found in src directory"
+            cd src
+            C_FILES="*.c"
+          else
+            echo "Searching for C files..."
+            C_FILES=$(find . -name "*.c" | tr '\n' ' ')
+          fi
+          
+          # Build the C sources to WASM + glue
           emcc -std=c99 -O3 -s STANDALONE_WASM \
-               -s EXPORTED_FUNCTIONS='["_swe_julday","_swe_calc_ut","_swe_set_ephe_path","_swe_houses_ex","_swe_get_planet_name"]' \
-               -s EXPORTED_RUNTIME_METHODS='["cwrap","ccall","setValue","getValue"]' \
+               -s EXPORTED_FUNCTIONS='["_swe_julday","_swe_calc_ut","_swe_set_ephe_path","_swe_houses","_swe_get_planet_name","_swe_revjul","_swe_jdut1_to_utc"]' \
+               -s EXPORTED_RUNTIME_METHODS='["cwrap","ccall","setValue","getValue","FS"]' \
                -s ALLOW_MEMORY_GROWTH=1 \
                -s MODULARIZE=1 \
                -s EXPORT_NAME='createSwissEphModule' \
-               *.c \
+               -s FILESYSTEM=1 \
+               $C_FILES \
                -o swe_wasm.js
 
           # 4. Move artifacts
-          mkdir -p ../../lib/swiss-ephem
-          mv swe_wasm.js  ../../lib/swiss-ephem/
-          mv swe_wasm.wasm ../../lib/swiss-ephem/
+          mkdir -p ../../lib/swiss-ephem || mkdir -p ../lib/swiss-ephem
+          mv swe_wasm.js ../../lib/swiss-ephem/ || mv swe_wasm.js ../lib/swiss-ephem/
+          mv swe_wasm.wasm ../../lib/swiss-ephem/ || mv swe_wasm.wasm ../lib/swiss-ephem/
 
       - name: Commit & push WASM files
         uses: stefanzweifel/git-auto-commit-action@v4
