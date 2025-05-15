@@ -2,7 +2,7 @@
   "name": "bazi-api",
   "version": "1.0.0",
   "type": "module",
-  "engines": {              // ← tells Vercel which Node to use
+  "engines": {
     "node": "18.x"
   },
   "scripts": {
@@ -10,7 +10,7 @@
     "vercel-build": "node vercel-build.js"
   },
   "dependencies": {
-    "swisseph": "^2.10.4",  // the npm package that bundles pre-built binaries
+    "swisseph": "^2.10.4",
     "@supabase/supabase-js": "^2.39.0"
   }
 }
