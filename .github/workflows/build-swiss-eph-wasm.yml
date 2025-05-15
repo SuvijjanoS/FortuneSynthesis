@@ -1,44 +1,24 @@
-name: Build Swiss-Eph WASM
+- name: Clone & build Swiss-Eph to WASM
+  run: |
+    # 1. Clone Swiss Ephemeris C source
+    git clone https://github.com/aloistr/swisseph.git swisseph
 
-on:
-  workflow_dispatch:
-  push:
-    branches: [ main ]
+    # 2. Install & activate Emscripten SDK
+    git clone https://github.com/emscripten-core/emsdk.git emsdk
+    cd emsdk
+    ./emsdk install latest
+    ./emsdk activate latest
+    source ./emsdk_env.sh
 
-jobs:
-  build-wasm:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+    # 3. Build the C sources to WASM + glue
+    cd ../swisseph
+    emcc -std=c99 -O3 -s STANDALONE_WASM \
+         -s EXPORTED_FUNCTIONS='["_swe_julday","_swe_calc_ut","_swe_set_ephe_path"]' \
+         -s EXPORTED_RUNTIME_METHODS='["cwrap","ccall"]' \
+         *.c \
+         -o swe_wasm.js
 
-      - name: Clone Swiss Ephemeris C and build to WASM
-        run: |
-          # 1. Clone Swiss Ephemeris C source
-          git clone https://github.com/aloistr/swisseph.git swisseph
-
-          # 2. Install & activate Emscripten in the same session
-          git clone https://github.com/emscripten-core/emsdk.git emsdk
-          cd emsdk
-          ./emsdk install latest
-          ./emsdk activate latest
-          source ./emsdk_env.sh
-
-          # 3. Build the C sources to wasm+glue
-          cd ../swisseph
-          emcc -std=c99 -O3 -s STANDALONE_WASM \
-               -s EXPORTED_FUNCTIONS='["_swe_julday","_swe_calc_ut","_swe_set_ephe_path"]' \
-               -s EXTRA_EXPORTED_RUNTIME_METHODS='["cwrap","ccall"]' \
-               *.c \
-               -o swe_wasm.js
-
-          # 4. Copy artifacts into your lib folder
-          mkdir -p ../lib/swiss-ephem
-          mv swe_wasm.js  ../lib/swiss-ephem/
-          mv swe_wasm.wasm ../lib/swiss-ephem/
-
-      - name: Commit & push WASM files
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "chore: update Swiss-Eph WASM build"
-          file_pattern: "lib/swiss-ephem/*"
+    # 4. Move artifacts
+    mkdir -p ../lib/swiss-ephem
+    mv swe_wasm.js  ../lib/swiss-ephem/
+    mv swe_wasm.wasm ../lib/swiss-ephem/
