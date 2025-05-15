@@ -1,0 +1,117 @@
+name: Generate missing WanNianLi years
+on: workflow_dispatch                # manual trigger again
+
+
+# <-- NEW: grant the workflow push rights explicitly
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # ---- (steps unchanged: clone & build ccalendar, generate JSON, merge) ----
+
+    - name: Commit & push final JSON
+      run: |
+        git config user.name  "gap-bot"
+        git config user.email "bot@example.com"
+        git add data/wanianli_1800_2300.json
+        git commit -m "Add merged WanNianLi 1800-2300 JSON" || echo "No diff"
+        # push directly to main; if branch protection blocks, fall back to tmp-branch
+        git push origin HEAD || git push origin HEAD:wanianli-data || true
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # 1. Compile the ccalendar tool
+    - name: Clone & build ccalendar
+      run: |
+        git clone --depth=1 https://github.com/liweitianux/ccalendar.git
+        make -C ccalendar           # produces ./ccalendar/ccalendar binary
+
+    # 2. Generate JSON for 1800-1899 and 2101-2300
+    - name: Generate gap JSON
+      run: |
+        mkdir -p data/gen
+        echo '[' > data/gen/gap.json
+        first=true
+        gen() { 
+          for y in $(seq $1 $2); do
+            for d in $(seq 1 $(./ccalendar/ccalendar --year $y --print-days)); do
+              line=$(./ccalendar/ccalendar --gregorian "$y-$d" --output json)
+              if [ "$first" = true ]; then first=false; else echo ',' >> data/gen/gap.json; fi
+              echo "$line" >> data/gen/gap.json
+            done
+          done
+        }
+        gen 1800 1899
+        gen 2101 2300
+        echo ']' >> data/gen/gap.json
+
+    # 3. Convert HKO + CWA CSV files already in data/ to JSON (quick node script)
+    - name: Convert existing CSV to JSON
+      run: |
+        node <<'NODE'
+        const fs = require('fs');
+        const path = require('path');
+        const csv = require('csv-parse/sync');
+
+        function csv2json(fname) {
+          const txt = fs.readFileSync(fname,'utf8');
+          return csv.parse(txt,{columns:true,skip_empty_lines:true});
+        }
+
+        // HKO yearly CSVs
+        let all = [];
+        fs.readdirSync('data/hko').forEach(f=>{
+          all = all.concat(csv2json(path.join('data/hko',f)));
+        });
+        // CWA master
+        all = all.concat(csv2json('data/cwa/cwa.csv'));
+
+        fs.writeFileSync('data/gen/official.json', JSON.stringify(all,null,0));
+        NODE
+
+    # 4. Merge gap + official to master
+    - name: Merge to 1800-2300 JSON
+      run: |
+        node <<'NODE'
+        const fs = require('fs');
+        const gap  = JSON.parse(fs.readFileSync('data/gen/gap.json','utf8'));
+        const off  = JSON.parse(fs.readFileSync('data/gen/official.json','utf8'));
+
+        // 🤏 Minimal harmonisation: keep fields we need & flatten
+        function normalise(r){
+          return {
+            gregorian_date: r['gregorian_date'] || r['公曆日期'] || r['Gregorian'],
+            lunar_year_gz : r['lunar_year_gz']  || r['農曆干支年'] || r['干支年'],
+            lunar_month   : r['lunar_month']    || r['農曆月']    || r['lunar_month'],
+            lunar_day     : r['lunar_day']      || r['農曆日']    || r['lunar_day']
+          };
+        }
+        const merged = [...gap.map(normalise), ...off.map(normalise)];
+        // remove possible duplicates (keep official row)
+        const map = {};
+        merged.forEach(r => map[r.gregorian_date] = r);
+        const finalArr = Object.values(map).sort((a,b)=>a.gregorian_date.localeCompare(b.gregorian_date));
+
+        fs.writeFileSync('data/wanianli_1800_2300.json', JSON.stringify(finalArr,null,0));
+        NODE
+
+    # 5. Commit the master file
+    - name: Commit & push final JSON
+      run: |
+        git config user.name  "gap-bot"
+        git config user.email "bot@example.com"
+        git add data/wanianli_1800_2300.json
+        git commit -m "Add merged WanNianLi 1800-2300 JSON" || echo "Nothing to commit"
+        git push
