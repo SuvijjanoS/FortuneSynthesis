@@ -2,141 +2,122 @@ name: Generate missing WanNianLi years
 on: workflow_dispatch
 
 permissions:
-  contents: write
+  contents: write            # allow git push
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    # 0 — checkout repo
+    # 0 — check out repo
     - uses: actions/checkout@v4
 
-    # 1 — install Python libs (all in cloud)
+    # 1 — install Python packages in the runner
     - name: Install Python deps
       run: |
         python -m pip install --upgrade pip
-        pip install lunardate
+        pip install lunar_python csvkit
 
-    # 2 — generate GAP years JSON (1800-1899, 2101-2300)
+    # 2 — generate GAP years JSON (1800-1899 & 2101-2300) with leap-month flag
     - name: Generate gap JSON
       run: |
         python <<'PY'
-        import json, datetime, math, os, sys
-        from lunardate import LunarDate
+        import json, math, os, datetime
+        from lunar_python import Solar
 
-        # --- helpers ---------------------------------------------------------
-        STEMS = "甲乙丙丁戊己庚辛壬癸"
-        BRANCHES = "子丑寅卯辰巳午未申酉戌亥"
+        # 10 Heavenly stems & 12 branches
+        G = "甲乙丙丁戊己庚辛壬癸"
+        Z = "子丑寅卯辰巳午未申酉戌亥"
 
-        def gz_year(year):
-            return STEMS[(year - 4) % 10] + BRANCHES[(year - 4) % 12]
-
-        #     Meeus JD (valid Gregorian 1583-9999)
-        def greg_to_jd(y, m, d):
-            if m <= 2:
-                y -= 1
-                m += 12
-            A = y // 100
-            B = 2 - A + A // 4
-            return (math.floor(365.25 * (y + 4716))
-                    + math.floor(30.6001 * (m + 1))
+        # JD of 1984-02-02 (Jia-Zi day) as anchor
+        def jd(y,m,d):
+            if m<=2: y-=1; m+=12
+            A=y//100; B=2-A+A//4
+            return (math.floor(365.25*(y+4716))
+                    + math.floor(30.6001*(m+1))
                     + d + B - 1524.5)
 
-        JD_ANCHOR = greg_to_jd(1984, 2,  2)  # 甲子日
+        JD0=jd(1984,2,2)
 
-        def gz_day(y, m, d):
-            idx = int((greg_to_jd(y, m, d) - JD_ANCHOR) % 60)
-            return STEMS[idx % 10] + BRANCHES[idx % 12]
+        def day_gz(y,m,d):
+            idx=int((jd(y,m,d)-JD0)%60)
+            return G[idx%10]+Z[idx%12]
 
-        out = []
-        def push(year):
-            start = datetime.date(year, 1, 1)
-            end   = datetime.date(year, 12, 31)
-            day   = datetime.timedelta(days=1)
-            cur = start
-            while cur <= end:
-                g = cur.isoformat()                       # YYYY-MM-DD
-                try:
-                    ld = LunarDate.fromSolarDate(cur.year, cur.month, cur.day)
-                    lunar_month = f"{'闰' if ld.isleap() else ''}{ld.month}"
-                    out.append({
-                        "gregorian_date": g,
-                        "lunar_year_gz" : gz_year(ld.year),
-                        "lunar_month"   : lunar_month,
-                        "lunar_day"     : ld.day,
-                        "day_ganzhi"    : gz_day(cur.year, cur.month, cur.day)
-                    })
-                except ValueError:
-                    # lunardate only valid to 2050; shouldn't happen here,
-                    # but leave guard for completeness.
-                    pass
-                cur += day
+        out=[]
+        def emit(yr):
+            cur=datetime.date(yr,1,1)
+            end=datetime.date(yr,12,31)
+            one=datetime.timedelta(days=1)
+            while cur<=end:
+                sol=Solar.fromYmd(cur.year,cur.month,cur.day)
+                lun=sol.getLunar()
+                out.append({
+                  "gregorian_date":cur.isoformat(),
+                  "lunar_year_gz" : lun.getYearInGanZhi(),
+                  "lunar_month"   : f"{'闰' if lun.isLeap() else ''}{lun.getMonth()}",
+                  "lunar_day"     : lun.getDay(),
+                  "day_ganzhi"    : day_gz(cur.year,cur.month,cur.day)
+                })
+                cur+=one
 
-        for y in range(1800, 1900):  push(y)
-        for y in range(2101, 2301):  push(y)
+        for y in range(1800,1900): emit(y)
+        for y in range(2101,2301): emit(y)
 
-        os.makedirs("data/gen", exist_ok=True)
-        with open("data/gen/gap.json", "w", encoding="utf8") as f:
-            json.dump(out, f, ensure_ascii=False)
-        print("Generated rows:", len(out))
+        os.makedirs("data/gen",exist_ok=True)
+        with open("data/gen/gap.json","w",encoding="utf8") as f:
+            json.dump(out,f,ensure_ascii=False)
+        print("Generated rows:",len(out))
         PY
 
-    # 3 — convert HKO + CWA CSVs that are already in data/ to JSON
+    # 3 — convert existing HKO + CWA CSVs → JSON
     - name: Convert official CSV → JSON
       run: |
         python <<'PY'
-        import csv, json, os, pathlib, glob
-
+        import csv, json, glob, os, pathlib
         rows=[]
-        # HKO yearly CSVs
         for fp in glob.glob("data/hko/*.csv"):
-            with open(fp, newline='', encoding='utf8') as f:
-                rows.extend(list(csv.DictReader(f)))
-        # CWA master CSV
+            with open(fp,encoding="utf8") as f:
+                rows+=list(csv.DictReader(f))
         if pathlib.Path("data/cwa/cwa.csv").exists():
-            with open("data/cwa/cwa.csv", newline='', encoding='utf8') as f:
-                rows.extend(list(csv.DictReader(f)))
+            with open("data/cwa/cwa.csv",encoding="utf8") as f:
+                rows+=list(csv.DictReader(f))
 
-        os.makedirs("data/gen", exist_ok=True)
+        os.makedirs("data/gen",exist_ok=True)
         with open("data/gen/official.json","w",encoding="utf8") as f:
             json.dump(rows,f,ensure_ascii=False)
-        print("Official rows:", len(rows))
+        print("Official rows:",len(rows))
         PY
 
-    # 4 — merge GAP + OFFICIAL → master JSON (normalise fields)
+    # 4 — merge GAP + OFFICIAL → master JSON
     - name: Merge to 1800-2300 JSON
       run: |
         python <<'PY'
-        import json, os, pathlib, itertools
-
-        gap = json.load(open("data/gen/gap.json", encoding="utf8"))
-        off = json.load(open("data/gen/official.json", encoding="utf8"))
+        import json, os, itertools
+        gap=json.load(open("data/gen/gap.json",encoding="utf8"))
+        off=json.load(open("data/gen/official.json",encoding="utf8"))
 
         def norm(r):
-            # unify field names; many CSV headers differ
             return {
               "g": r.get("gregorian_date") or r.get("公曆日期") or r.get("Gregorian") or r.get("日期"),
               "y": r.get("lunar_year_gz")  or r.get("農曆干支年") or r.get("干支年"),
               "m": r.get("lunar_month")    or r.get("農曆月")    or r.get("lunar_month"),
               "d": r.get("lunar_day")      or r.get("農曆日")    or r.get("lunar_day"),
-              "dg": r.get("day_ganzhi")    or r.get("day_ganzhi") # may be missing in official CSV
+              "dg":r.get("day_ganzhi")     or r.get("day_ganzhi")
             }
 
         merged={}
-        for r in itertools.chain(gap, off):
-            n = norm(r)
-            if n["g"]:
-                merged[n["g"]] = n          # official rows override gap
+        for r in itertools.chain(gap,off):
+            n=norm(r)
+            if n["g"]: merged[n["g"]]=n   # official row overrides
 
-        out = list(sorted(merged.values(), key=lambda x: x["g"]))
-        os.makedirs("data", exist_ok=True)
+        final=sorted(merged.values(),key=lambda x:x["g"])
+        os.makedirs("data",exist_ok=True)
         with open("data/wanianli_1800_2300.json","w",encoding="utf8") as f:
-            json.dump(out, f, ensure_ascii=False)
-        print("Merged days:", len(out))
+            json.dump(final,f,ensure_ascii=False)
+        print("Merged days:",len(final))
         PY
 
-    # 5 — commit & push
+    # 5 — commit result
     - name: Commit merged file
       run: |
         git config user.name  "gap-bot"
@@ -146,5 +127,5 @@ jobs:
         git push origin HEAD
 
     # 6 — sanity check
-    - name: List final artefact
+    - name: List artefact
       run: ls -lh data/wanianli_1800_2300.json
