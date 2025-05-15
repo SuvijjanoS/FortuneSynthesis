@@ -24,7 +24,7 @@ jobs:
           git clone --depth 1 https://github.com/liweitianux/ccalendar.git
           make -C ccalendar                   # binary -> ccalendar/ccalendar
           chmod +x ccalendar/calendar
-          echo "CC_BIN=${GITHUB_WORKSPACE}/ccalendar/ccalendar" >> $GITHUB_ENV
+          echo "CC_BIN=${GITHUB_WORKSPACE}/ccalendar/calendar" >> $GITHUB_ENV
 
       # — 3.  generate GAP JSON (1800-1899 & 2101-2300) —
       - name: Generate gap JSON
