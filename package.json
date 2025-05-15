@@ -2,12 +2,15 @@
   "name": "bazi-api",
   "version": "1.0.0",
   "type": "module",
+  "engines": {              // ← tells Vercel which Node to use
+    "node": "18.x"
+  },
   "scripts": {
     "prevercel-build": "mkdir -p ephe && curl -L $EPHE_PLANET_URL -o ephe/sepl_18.se1 && curl -L $EPHE_MOON_URL -o ephe/semo_18.se1",
     "vercel-build": "node vercel-build.js"
   },
   "dependencies": {
-    "swisseph": "^0.5.17",
+    "swisseph": "^2.10.4",  // the npm package that bundles pre-built binaries
     "@supabase/supabase-js": "^2.39.0"
   }
 }
