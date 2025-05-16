@@ -1,32 +1,26 @@
-// BaZi ES Module – v5.0  (pure‑JS + Swiss‑Eph WASM, WanNianLi, Luck Pillars)
-// ---------------------------------------------------------------------------
-// This file expects two runtime env‑vars (in Vercel settings):
-//   SUPABASE_URL   – your project URL
-//   SUPABASE_KEY   – service‑role key (read access to `wanianli` table)
-// ---------------------------------------------------------------------------
-
-import { createClient } from '@supabase/supabase-js';
+// bazi.js - Main BaZi calculation module
 import loadSwissEph from '../lib/swiss-ephem/loader.js';
+import { createClient } from '@supabase/supabase-js';
 import path from 'path';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1.  Boot Swiss Ephemeris WASM (top‑level await)                              
+// 1.  Initialize Swiss Ephemeris WASM                          
 // ─────────────────────────────────────────────────────────────────────────────
 const swe = await loadSwissEph(); // { julday, calcUt, revjul, sweClose, Module }
 
-// point Swiss‑Eph to ephemeris data (./lib/ephe)
+// Point Swiss-Eph to ephemeris data (./lib/ephe)
 const epheDir = path.resolve('./lib/ephe');
 swe.Module.ccall('swe_set_ephe_path', 'void', ['string'], [epheDir]);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2.  Supabase helper                                                          
+// 2.  Supabase client for WanNianLi data                                              
 // ─────────────────────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3.  Static data                                                             
+// 3.  Static data imports                                             
 // ─────────────────────────────────────────────────────────────────────────────
 import {
   HEAVENLY_STEMS,
@@ -39,7 +33,7 @@ import solarTermMap from './data/solarTerms.json';
 import { identifyInteractions } from './interactions.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4.  Wan‑Nian‑Li helpers                                                     
+// 4.  Wan‑Nian‑Li helpers                                                    
 // ─────────────────────────────────────────────────────────────────────────────
 export async function getDayGanzhi(dateStr) {
   const { data, error } = await supabase
@@ -54,6 +48,22 @@ export async function getDayGanzhi(dateStr) {
 export async function getDayPillar(dateStr) {
   const gz = await getDayGanzhi(dateStr);
   return { dayStem: gz[0], dayBranch: gz[1] };
+}
+
+export async function getChineseDate(dateStr) {
+  const { data, error } = await supabase
+    .from('wanianli')
+    .select('lunar_year_gz, lunar_month, lunar_day, day_ganzhi')
+    .eq('gregorian_date', dateStr)
+    .single();
+  
+  if (error) throw error;
+  return {
+    yearGanZhi: data.lunar_year_gz,
+    month: data.lunar_month,
+    day: data.lunar_day,
+    dayGanZhi: data.day_ganzhi
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -132,7 +142,7 @@ export function getHourPillar(date, dayStem) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 7. Luck Pillars (120 yrs)                                                   
+// 7. Luck Pillars (120 yrs)                                                   
 // ─────────────────────────────────────────────────────────────────────────────
 function findNextPrevJieJD(jd, forward = true) {
   const dt = jdToUTC(jd); const yr = dt.getUTCFullYear();
@@ -156,41 +166,107 @@ export async function calcLuckPillars(birthDate, gender, yearStem, monthIndex) {
   const pillars = [];
   for (let i = 0; i < 12; i++) {
     const shift = fwd ? i + 1 : -(i + 1);
-    const stem = HEAVENLY_STEMS[(stem0Idx + monthIndex + shift + 100) % 10].chinese;
+    const stemChar = HEAVENLY_STEMS[(stem0Idx + monthIndex + shift + 100) % 10].chinese;
     const branchObj = EARTHLY_BRANCHES[(monthIndex + shift + 120) % 12];
+    
+    // Get complete stem and branch objects
+    const stemObj = HEAVENLY_STEMS.find(s => s.chinese === stemChar);
+    
     pillars.push({
       startAge: startAge + i * 10,
       endAge: startAge + i * 10 + 9,
-      stem,
-      branch: branchObj.chinese,
-      hiddenBranches: branchObj.hiddenStems
+      stem: {
+        chinese: stemChar,
+        pinyin: stemObj.pinyin,
+        element: stemObj.element
+      },
+      branch: {
+        chinese: branchObj.chinese,
+        pinyin: branchObj.pinyin,
+        animal: branchObj.animal,
+        element: branchObj.element,
+        hiddenStems: branchObj.hiddenStems
+      }
     });
   }
   return pillars;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 8.   Public API                                                            
+// 8.   Main calculation function                                              
 // ─────────────────────────────────────────────────────────────────────────────
-export default async function calcBazi({ year, month, day, hour, minute, tzOffset, dst = false, gender }) {
-  const jd = toJulianDay(year, month, day, hour, minute, tzOffset, dst);
-  const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+export default async function calculateBaziChart(birthDate, location, gender) {
+  const jd = toJulianDay(
+    birthDate.getFullYear(),
+    birthDate.getMonth() + 1,
+    birthDate.getDate(),
+    birthDate.getHours(),
+    birthDate.getMinutes(),
+    location.timezone,
+    location.dst || false
+  );
+  
+  const dateStr = `${birthDate.getFullYear()}-${String(birthDate.getMonth() + 1).padStart(2, '0')}-${String(birthDate.getDate()).padStart(2, '0')}`;
 
+  // Calculate all pillars
   const [yearP, dayP] = await Promise.all([
     getYearPillar(jd),
     getDayPillar(dateStr)
   ]);
   const monthP = await getMonthPillar(jd, yearP.yearStem);
-  const hourP = getHourPillar(new Date(Date.UTC(year, month - 1, day, hour, minute)), dayP.dayStem);
+  const hourP = getHourPillar(birthDate, dayP.dayStem);
 
+  // Get Chinese date details
+  const chineseDate = await getChineseDate(dateStr);
+
+  // Calculate luck pillars
   const luckPillars = await calcLuckPillars(
-    new Date(year, month - 1, day, hour, minute),
+    birthDate,
     gender,
     yearP.yearStem,
     monthP.monthIndex
   );
 
-  const chart = { yearP, monthP, dayP, hourP, luckPillars };
+  // Get complete stem and branch objects for each pillar
+  const yearStem = HEAVENLY_STEMS.find(s => s.chinese === yearP.yearStem);
+  const yearBranch = EARTHLY_BRANCHES.find(b => b.chinese === yearP.yearBranch);
+  
+  const monthStem = HEAVENLY_STEMS.find(s => s.chinese === monthP.monthStem);
+  const monthBranch = EARTHLY_BRANCHES.find(b => b.chinese === monthP.monthBranch);
+  
+  const dayStem = HEAVENLY_STEMS.find(s => s.chinese === dayP.dayStem);
+  const dayBranch = EARTHLY_BRANCHES.find(b => b.chinese === dayP.dayBranch);
+  
+  const hourStem = HEAVENLY_STEMS.find(s => s.chinese === hourP.hourStem);
+  const hourBranch = EARTHLY_BRANCHES.find(b => b.chinese === hourP.hourBranch);
+
+  // Create detailed chart object
+  const chart = {
+    birthDate: birthDate,
+    julianDay: jd,
+    gender: gender,
+    chineseDate: chineseDate,
+    yearPillar: {
+      stem: yearStem,
+      branch: yearBranch
+    },
+    monthPillar: {
+      stem: monthStem,
+      branch: monthBranch
+    },
+    dayPillar: {
+      stem: dayStem,
+      branch: dayBranch
+    },
+    hourPillar: {
+      stem: hourStem,
+      branch: hourBranch
+    },
+    luckPillars: luckPillars
+  };
+  
+  // Identify interactions between pillars
   chart.interactions = identifyInteractions(chart);
+  
   return chart;
 }
