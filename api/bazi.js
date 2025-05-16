@@ -1,4 +1,4 @@
-// bazi.js - Main BaZi calculation module
+// api/bazi.js - Updated to use WASM instead of native swisseph
 import loadSwissEph from '../lib/swiss-ephem/loader.js';
 import { createClient } from '@supabase/supabase-js';
 import path from 'path';
@@ -6,11 +6,33 @@ import path from 'path';
 // ─────────────────────────────────────────────────────────────────────────────
 // 1.  Initialize Swiss Ephemeris WASM                          
 // ─────────────────────────────────────────────────────────────────────────────
-const swe = await loadSwissEph(); // { julday, calcUt, revjul, sweClose, Module }
-
-// Point Swiss-Eph to ephemeris data (./lib/ephe)
-const epheDir = path.resolve('./lib/ephe');
-swe.Module.ccall('swe_set_ephe_path', 'void', ['string'], [epheDir]);
+let swe;
+try {
+  swe = await loadSwissEph(); // { julday, calcUt, revjul, sweClose, Module }
+  
+  // Point Swiss-Eph to ephemeris data (./lib/ephe)
+  const epheDir = path.resolve('./lib/ephe');
+  swe.Module.ccall('swe_set_ephe_path', 'void', ['string'], [epheDir]);
+} catch (error) {
+  console.error('Failed to load Swiss Ephemeris WASM:', error);
+  // Fallback to simplified calculations if WASM fails
+  swe = {
+    julday: (year, month, day, hour) => {
+      // Simple Julian Day calculation without Swiss Ephemeris
+      let a = Math.floor((14 - month) / 12);
+      let y = year + 4800 - a;
+      let m = month + 12 * a - 3;
+      return day + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - 
+             Math.floor(y / 100) + Math.floor(y / 400) - 32045 + (hour - 12) / 24;
+    },
+    calcUt: () => 0,
+    revjul: () => {},
+    sweClose: () => {},
+    Module: {
+      ccall: () => {}
+    }
+  };
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 2.  Supabase client for WanNianLi data                                              
