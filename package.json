@@ -2,11 +2,9 @@
   "name": "bazi-calculator",
   "version": "1.0.0",
   "type": "module",
-  "engines": {
-    "node": "16.x"
-  },
+
   "scripts": {
-    "preinstall": "chmod +x ./pre-install.sh && ./pre-install.sh",
+    "preinstall": "chmod +x",
     "prevercel-build": "mkdir -p ephe && curl -L $EPHE_PLANET_URL -o ephe/sepl_18.se1 && curl -L $EPHE_MOON_URL -o ephe/semo_18.se1",
     "vercel-build": "node vercel-build.js"
   },
