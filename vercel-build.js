@@ -36,7 +36,6 @@ fs.writeFileSync(path.join(targetDir, 'index.js'), indexFile);
 
 console.log('Created empty swisseph module at', targetDir);
 
-// Continue with the existing vercel-build.js logic
 // Ensure the ephe directory exists
 if (!fs.existsSync('ephe')) {
   console.log('Creating ephe directory');
@@ -53,7 +52,6 @@ if (!fs.existsSync(libEphePath)) {
   console.log('Creating symlink for lib/ephe');
   fs.mkdirSync(path.dirname(libEphePath), { recursive: true });
   
-  // Use different methods depending on the environment
   try {
     fs.symlinkSync(path.resolve('./ephe'), libEphePath, 'dir');
   } catch (error) {
