@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "buildCommand": "npm install --no-optional --no-package-lock && npm run vercel-build",
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1.js" },
     { "src": "/(.*)", "dest": "/index.html" }
