@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm install --no-optional --ignore-scripts && npm run vercel-build",
+  "buildCommand": "mkdir -p node_modules/@empty/swisseph && echo '{\"name\":\"@empty/swisseph\",\"version\":\"1.0.0\",\"main\":\"index.js\"}' > node_modules/@empty/swisseph/package.json && echo 'module.exports={swe_julday:()=>0,swe_calc_ut:()=>0,swe_revjul:()=>{},swe_close:()=>{},swe_set_ephe_path:()=>{},SE_GREG_CAL:1};' > node_modules/@empty/swisseph/index.js && npm install --no-optional --ignore-scripts && npm run vercel-build",
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1.js" },
     { "src": "/(.*)", "dest": "/index.html" }
