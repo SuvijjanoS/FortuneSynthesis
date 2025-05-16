@@ -1,18 +1,10 @@
 {
   "version": 2,
-
-  "builds": [
-    { "src": "api/**/*.js", "use": "@vercel/node@4" },
-    { "src": "index.html",  "use": "@vercel/static" }
-  ],
-
+  "buildCommand": "npm run build-on-vercel",
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1.js" },
     { "src": "/(.*)",     "dest": "/index.html" }
   ],
-
-  "buildCommand": "npm run vercel-build",
-
   "env": {
     "SUPABASE_URL": "@supabase_url",
     "SUPABASE_KEY": "@supabase_key",
