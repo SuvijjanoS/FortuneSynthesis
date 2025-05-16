@@ -3,13 +3,13 @@
    "version": "1.0.0",
    "type": "module",
    "scripts": {
--    "preinstall": "chmod +x",
-+    "preinstall": "echo \"using local swisseph stub\"",
+
+     "preinstall": "sh pre-install.sh",
      "prevercel-build": "mkdir -p ephe && curl -L $EPHE_PLANET_URL -o ephe/sepl_18.se1 && curl -L $EPHE_MOON_URL -o ephe/semo_18.se1",
      "vercel-build": "node vercel-build.js"
    },
    "dependencies": {
      "@supabase/supabase-js": "^2.39.0",
-+    "swisseph": "file:./lib/swiss-ephem"      // ← NEW, points at your stub
+     "swisseph": "file:./lib/swiss-ephem"      // ← NEW, points at your stub
    }
  }
