@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm install --no-optional --no-package-lock && npm run vercel-build",
+  "buildCommand": "mkdir -p node_modules/swisseph && cp empty-swisseph.js node_modules/swisseph/index.js && npm install --no-optional --ignore-scripts && npm run vercel-build",
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1.js" },
     { "src": "/(.*)", "dest": "/index.html" }
