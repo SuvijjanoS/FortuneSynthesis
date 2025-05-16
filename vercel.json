@@ -1,14 +1,11 @@
 {
   "version": 2,
-  "buildCommand": "mkdir -p node_modules/swisseph && cp empty-swisseph.js node_modules/swisseph/index.js && npm install --no-optional --ignore-scripts && npm run vercel-build",
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1.js" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "src": "/(.*)",     "dest": "/index.html" }
   ],
   "env": {
     "SUPABASE_URL": "@supabase_url",
-    "SUPABASE_KEY": "@supabase_key",
-    "EPHE_PLANET_URL": "https://cdn.jsdelivr.net/npm/ephemeris@2.0.0/ephe/sepl_18.se1",
-    "EPHE_MOON_URL": "https://cdn.jsdelivr.net/npm/ephemeris@2.0.0/ephe/semo_18.se1"
+    "SUPABASE_KEY": "@supabase_key"
   }
 }
