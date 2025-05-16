@@ -1,17 +1,13 @@
 {
   "name": "bazi-calculator",
   "version": "1.0.0",
-  "type": "module",
-  "engines": {
-    "node": "18.x"
+  "type": "module"
   },
   "scripts": {
     "vercel-build": "mkdir -p ephe && curl -L $EPHE_PLANET_URL -o ephe/sepl_18.se1 && curl -L $EPHE_MOON_URL -o ephe/semo_18.se1 && node vercel-build.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0"
-  },
-  "devDependencies": {
-    "swisseph": "npm:@empty/swisseph@1.0.0"
   }
+ 
 }
