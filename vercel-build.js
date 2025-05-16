@@ -1,7 +1,42 @@
-// vercel-build.js - Run during Vercel build to set up ephemeris files
-import fs from 'fs';
-import path from 'path';
+// Create an @empty/swisseph directory in node_modules
+const fs = require('fs');
+const path = require('path');
 
+// Ensure the target directory exists
+const targetDir = path.resolve('./node_modules/@empty/swisseph');
+fs.mkdirSync(targetDir, { recursive: true });
+
+// Create the package.json for the empty module
+const packageJson = {
+  "name": "@empty/swisseph",
+  "version": "1.0.0",
+  "description": "Empty placeholder for swisseph to prevent native compilation",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+};
+
+// Create the empty module file
+const indexFile = `
+module.exports = {
+  swe_julday: () => 0,
+  swe_calc_ut: () => 0,
+  swe_revjul: () => {},
+  swe_close: () => {},
+  swe_set_ephe_path: () => {},
+  SE_GREG_CAL: 1
+};
+`;
+
+// Write the files
+fs.writeFileSync(path.join(targetDir, 'package.json'), JSON.stringify(packageJson, null, 2));
+fs.writeFileSync(path.join(targetDir, 'index.js'), indexFile);
+
+console.log('Created empty swisseph module at', targetDir);
+
+// Continue with the existing vercel-build.js logic
 // Ensure the ephe directory exists
 if (!fs.existsSync('ephe')) {
   console.log('Creating ephe directory');
