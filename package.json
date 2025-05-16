@@ -6,6 +6,7 @@
     "node": "16.x"
   },
   "scripts": {
+    "preinstall": "chmod +x ./pre-install.sh && ./pre-install.sh",
     "prevercel-build": "mkdir -p ephe && curl -L $EPHE_PLANET_URL -o ephe/sepl_18.se1 && curl -L $EPHE_MOON_URL -o ephe/semo_18.se1",
     "vercel-build": "node vercel-build.js"
   },
@@ -13,6 +14,6 @@
     "@supabase/supabase-js": "^2.39.0"
   },
   "overrides": {
-    "swisseph": "0.0.0"
+    "swisseph": "npm:@empty/swisseph@1.0.0"
   }
 }
