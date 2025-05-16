@@ -11,5 +11,8 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0"
+  },
+  "overrides": {
+    "swisseph": "0.0.0"
   }
 }
