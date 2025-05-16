@@ -1,12 +1,12 @@
 {
-  "name": "bazi-api",
+  "name": "bazi-calculator",
   "version": "1.0.0",
   "type": "module",
   "engines": {
     "node": "16.x"
   },
   "scripts": {
-    "prevercel-build": "apt-get update && apt-get install -y python3-setuptools python3-distutils && mkdir -p ephe && curl -L $EPHE_PLANET_URL -o ephe/sepl_18.se1 && curl -L $EPHE_MOON_URL -o ephe/semo_18.se1",
+    "prevercel-build": "mkdir -p ephe && curl -L $EPHE_PLANET_URL -o ephe/sepl_18.se1 && curl -L $EPHE_MOON_URL -o ephe/semo_18.se1",
     "vercel-build": "node vercel-build.js"
   },
   "dependencies": {
