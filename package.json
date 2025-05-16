@@ -10,6 +10,6 @@
    },
    "dependencies": {
      "@supabase/supabase-js": "^2.39.0",
-     "swisseph": "file:./lib/swiss-ephem"      // ← NEW, points at your stub
+     "swisseph": "file:./lib/swiss-ephem"      
    }
  }
